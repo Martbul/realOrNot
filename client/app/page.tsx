@@ -1,4 +1,6 @@
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -48,9 +50,14 @@ export default function Home() {
             Read our docs
           </a>
         </div>
-
         <div>
-          <button>Login</button>
+          <Link href="/login">
+            <Button className="grad gradHover w-full animate-pulse min-[400px]:w-auto">
+              Login
+            </Button>
+          </Link>
+        </div>
+        <div>
           <button>SignUp</button>
         </div>
       </main>

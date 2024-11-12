@@ -85,6 +85,10 @@ const Login = () => {
 					<form onSubmit={handleSubmit(onSubmit)}>
 						<CardContent className="grid gap-4">
 							<div className="grid grid-cols-2 gap-6">
+
+								{/*
+
+
 								<Button variant="outline">
 									<GithubIcon className="mr-2 h-4 w-4" />
 									Github
@@ -93,6 +97,8 @@ const Login = () => {
 									<ChromeIcon className="mr-2 h-4 w-4" />
 									Google
 								</Button>
+	
+    */}
 							</div>
 							<div className="relative">
 								<div className="absolute inset-0 flex items-center">
@@ -156,12 +162,19 @@ const Login = () => {
 								type="submit"
 								className="w-full border border-black bg-zinc-950 text-white hover:bg-zinc-700"
 								disabled={isPending}
+
 							>
-								{isPending ? (
+
+								{/* 
+
+    	{isPending ? (
 									<AnimatedCircleIcon className="h-9 w-9" />
 								) : (
 									"Sing In"
 								)}
+							<*/}
+								Login
+
 							</Button>
 						</CardFooter>
 					</form>

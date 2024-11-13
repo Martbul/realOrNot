@@ -51,14 +51,19 @@ export default function Home() {
           </a>
         </div>
         <div>
+
           <Link href="/login">
-            <Button className="grad gradHover w-full animate-pulse min-[400px]:w-auto">
+            <Button className="grad gradHover w-full min-[400px]:w-auto">
               Login
             </Button>
           </Link>
         </div>
         <div>
-          <button>SignUp</button>
+          <Link href="/signup">
+            <Button className="grad gradHover w-full  min-[400px]:w-auto">
+              Signup
+            </Button>
+          </Link>
         </div>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">

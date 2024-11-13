@@ -77,7 +77,7 @@ const Login = () => {
 			<div className="flex flex-col items-center justify-center bg-white p-8">
 				<Card className="w-full max-w-md shadow-lg">
 					<CardHeader className="space-y-1">
-						<CardTitle className="text-2xl">Sing In</CardTitle>
+						<CardTitle className="text-2xl">Login</CardTitle>
 						<CardDescription>
 							Continue exploring our Formula 1 world today!
 						</CardDescription>

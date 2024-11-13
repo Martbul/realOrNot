@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useAuthContext } from "@/contexts/authContext";
+import { signup } from "@/services/auth/auth.service";
 //import { AnimatedCircleIcon, ChromeIcon, GithubIcon } from "@/utils/svgIcons";
 
 type SignUpFormData = {
@@ -35,7 +36,7 @@ const SignUp = () => {
   const { mutate, isPending, isError, error } = useMutation({
     mutationFn: async (data: SignUpFormData) => {
       const { username, email, password } = data;
-      const response = await signUp(username, email, password, setUser);
+      const response = await signup(username, email, password, setUser);
       return response;
     },
     onSuccess: () => {

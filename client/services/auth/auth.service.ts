@@ -1,12 +1,13 @@
-const url = "http://localhost:3000/user/auth"
+const url = "http://localhost:8080/user"
 // authService.js
 export const login = async (email: string, password: string, setUser: Function) => {
 	try {
-		const response = await fetch("https://your-server-url.com/api/login", {
+		const response = await fetch(url + "/login", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 			body: JSON.stringify({ email, password }),
 		});
 
@@ -33,14 +34,14 @@ export const login = async (email: string, password: string, setUser: Function) 
 
 
 // authService.js
-export const signup = async (email: string, password: string, setUser: Function) => {
+export const signup = async (username: string, email: string, password: string, setUser: Function) => {
 	try {
-		const response = await fetch("https://your-server-url.com/api/signup", {
+		const response = await fetch(url + "/signup", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ email, password }),
+			body: JSON.stringify({ username, email, password }),
 		});
 
 		if (!response.ok) {

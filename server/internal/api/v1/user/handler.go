@@ -3,7 +3,6 @@ package user
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
@@ -20,6 +19,7 @@ func SignupUser(db *sqlx.DB) http.HandlerFunc {
 		var req types.SignupRequest
 
 		log := logger.GetLogger()
+
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
@@ -51,16 +51,9 @@ func SignupUser(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Set the JWT as a cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    token,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: true,
-		})
 		log.Info("Successful user signup")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(map[string]string{"message": "User created and logged in successfully"})
+		json.NewEncoder(w).Encode(map[string]string{"JWT": token, "id": user.Id, "email": user.Email})
 	}
 }
 
@@ -68,8 +61,15 @@ func SignupUser(db *sqlx.DB) http.HandlerFunc {
 func LoginUser(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.LoginRequest
-
 		log := logger.GetLogger()
+
+		// Check if db is nil
+		if db == nil {
+			log.Error("Database connection is nil")
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
@@ -95,16 +95,9 @@ func LoginUser(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Set the JWT as a cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    token,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: true,
-		})
 		log.Info("Successful user login")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+		json.NewEncoder(w).Encode(map[string]string{"JWT": token, "id": user.Id, "email": user.Email})
 	}
 }
 

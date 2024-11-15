@@ -9,7 +9,15 @@ import (
 )
 
 func RegisterGameRoutes(r *mux.Router, matchmaker *matchmaker.Matchmaker, db *sqlx.DB) {
+
 	gameRouter := r.PathPrefix("/game").Subrouter()
+
+	// Register the join game route
 	gameRouter.HandleFunc("/join", JoinGame(matchmaker)).Methods(http.MethodPost)
-	gameRouter.HandleFunc("/status/{id}", GetGameStatus(db)).Methods(http.MethodGet)
+
+	// Register the WebSocket route for game sessions
+	gameRouter.HandleFunc("/session/{session_id}", HandleWebSocketConnection(matchmaker)).Methods(http.MethodGet)
+
+	// Optionally register a route to check game status
+	gameRouter.HandleFunc("/{id}", GetGameStatus(db)).Methods(http.MethodGet)
 }

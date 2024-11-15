@@ -1,9 +1,47 @@
-
+"use client"
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { useForm } from "react-hook-form"; // Add import for useForm
+import { useMutation } from "@tanstack/react-query"; // Add import for useMutation
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+type JoinGameFormData = {
+  userID: string; 
+};
 
 export default function Home() {
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<SignInFormData>();
+
+
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: async (data: JoinGameFormData) => {
+      const { email, password } = data;
+      const response = await joinGame(userId);
+      return response;
+    },
+    onSuccess: () => {
+      router.replace("/game/session{...}"); // Placeholder URL corrected
+    },
+  });
+
+  const onSubmit = (data: JoinGameFormData) => {
+    console.log("here submiting")
+    mutate(data);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top Bar */}
@@ -30,7 +68,19 @@ export default function Home() {
           priority
         />
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button className="grad gradHover w-full sm:w-auto">Join a Game</Button>
+          <Dialog>
+
+					<form onSubmit={handleSubmit(onSubmit)}>
+            <DialogTrigger >
+              <Button type="submit" className="grad gradHover">Join a Game</Button>
+            </DialogTrigger>
+</form>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Waiting for players...</DialogTitle>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
           <Button className="grad gradHover w-full sm:w-auto">Start a Game</Button>
         </div>
       </main>
@@ -53,4 +103,3 @@ export default function Home() {
     </div>
   );
 }
-

@@ -5,10 +5,16 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/game"
 	"github.com/martbul/realOrNot/internal/game/matchmaker"
+	"github.com/martbul/realOrNot/internal/game/session"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
 // JoinGame handler allows a player to join the matchmaking queue
 func JoinGame(mm *matchmaker.Matchmaker) http.HandlerFunc {
@@ -63,5 +69,48 @@ func GetGameStatus(db *sqlx.DB) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(sessionInfo)
+	}
+}
+
+// HandleWebSocketConnection upgrades the HTTP connection to a WebSocket for real-time communication
+func HandleWebSocketConnection(mm *matchmaker.Matchmaker) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve session ID from the URL
+		sessionID := mux.Vars(r)["session_id"]
+
+		// Get the session based on sessionID
+		sess := session.GetSessionByID(sessionID) // Assume you have a function to retrieve sessions
+		if sess == nil {
+			http.Error(w, "Session not found", http.StatusNotFound)
+			return
+		}
+
+		// Upgrade the connection to WebSocket
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
+			return
+		}
+
+		// Add the player to the session and start listening
+		player := &game.Player{ID: "new-player-id", Conn: conn}
+		sess.AddPlayer(player) // Assume your session has an AddPlayer method
+		go listenToPlayer(player, sess)
+	}
+}
+
+func listenToPlayer(player *game.Player, sess *session.Session) {
+	// Example listener for player inputs
+	for {
+		var msg struct {
+			Guess string `json:"guess"`
+		}
+		if err := player.Conn.ReadJSON(&msg); err != nil {
+			// Handle disconnection or errors
+			break
+		}
+
+		// Process the player's guess
+		sess.ProcessGuess(player, msg.Guess) // Assume a method to handle guesses
 	}
 }

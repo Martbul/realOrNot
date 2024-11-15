@@ -16,6 +16,7 @@ export const login = async (email: string, password: string, setUser: Function) 
 		}
 
 		const data = await response.json();
+		console.log(data)
 
 		// Assuming `data` contains user information and a token
 		setUser(data.user); // Update user in auth context
@@ -49,14 +50,17 @@ export const signup = async (username: string, email: string, password: string, 
 		}
 
 		const data = await response.json();
+		console.log(data)
 
 		// Assuming `data` contains user information and a token
-		setUser(data.user); // Update user in auth context
+		setUser(data.userEmail); // Update user in auth context
 
 		// Optional: store tokens or user data locally
 		// localStorage.setItem("accessToken", data.accessToken);
-		// localStorage.setItem("refreshToken", data.refreshToken);
-		// localStorage.setItem("user", JSON.stringify(data.user));
+		//localStorage.setItem("refreshToken", data.refreshToken);
+		localStorage.SetItem("jwt", JSON.stringify(data.JWT)) 
+		localStorage.setItem("userEmail", JSON.stringify(data.email));
+
 
 		return data;
 	} catch (error) {

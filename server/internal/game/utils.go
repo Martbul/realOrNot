@@ -1,25 +1,22 @@
-// internal/game/utils.go
 package game
 
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
-//here the func in private
-//func generateSessionID() string {
-//	return "session-" + fmt.Sprint(rand.Intn(100000))
-//}
-
-func GenerateSessionID() string {
-	return "session-" + fmt.Sprint(rand.Intn(100000))
+func GenerateRounds() []Round {
+	return []Round{
+		{RealImageURL: "https://example.com/real1.jpg", FakeImageURL: "https://example.com/fake1.jpg", Correct: "real"},
+		{RealImageURL: "https://example.com/real2.jpg", FakeImageURL: "https://example.com/fake2.jpg", Correct: "fake"},
+		{RealImageURL: "https://example.com/real3.jpg", FakeImageURL: "https://example.com/fake3.jpg", Correct: "real"},
+		{RealImageURL: "https://example.com/real4.jpg", FakeImageURL: "https://example.com/fake4.jpg", Correct: "fake"},
+		{RealImageURL: "https://example.com/real5.jpg", FakeImageURL: "https://example.com/fake5.jpg", Correct: "real"},
+	}
 }
 
-func GenerateRounds() []Round {
-	// Generate some example rounds (in real app, pull from a DB or service)
-	return []Round{
-		{ImageURL: "https://example.com/real1.jpg", Answer: true},
-		{ImageURL: "https://example.com/fake1.jpg", Answer: false},
-		// Additional rounds can be added or retrieved dynamically
-	}
+func GenerateSessionID() string {
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("session-%d", rand.Int())
 }

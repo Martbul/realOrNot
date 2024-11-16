@@ -13,7 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// SignupUser handler for user registration and automatic login
 func SignupUser(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.SignupRequest
@@ -25,7 +24,6 @@ func SignupUser(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Hash the password
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)
@@ -38,13 +36,11 @@ func SignupUser(db *sqlx.DB) http.HandlerFunc {
 			HashedPassword: string(hashedPassword),
 		}
 
-		// Save user to the database
 		if err := dbPackage.CreateUser(db, user); err != nil {
 			http.Error(w, "Failed to create user", http.StatusInternalServerError)
 			return
 		}
 
-		// Generate JWT upon successful signup
 		token, err := util.GenerateJWT(req.Username, req.Email)
 		if err != nil {
 			http.Error(w, "Could not generate token", http.StatusInternalServerError)
@@ -57,13 +53,11 @@ func SignupUser(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
-// LoginUser handler for user login and JWT generation
 func LoginUser(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.LoginRequest
 		log := logger.GetLogger()
 
-		// Check if db is nil
 		if db == nil {
 			log.Error("Database connection is nil")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -75,20 +69,17 @@ func LoginUser(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Fetch user from the database
 		user, err := dbPackage.GetUserByEmail(db, req.Email)
 		if err != nil {
 			http.Error(w, "User not found", http.StatusUnauthorized)
 			return
 		}
 
-		// Verify the password
 		if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(req.Password)); err != nil {
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
 		}
 
-		// Generate JWT upon successful login
 		token, err := util.GenerateJWT(user.UserName, req.Email)
 		if err != nil {
 			http.Error(w, "Could not generate token", http.StatusInternalServerError)
@@ -101,7 +92,6 @@ func LoginUser(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
-// GetUser handler for retrieving user data by ID
 func GetUser(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user types.User

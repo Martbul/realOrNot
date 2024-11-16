@@ -7,7 +7,6 @@ export const login = async (email: string, password: string, setUser: Function) 
 			headers: {
 				"Content-Type": "application/json",
 			},
-			credentials: "include",
 			body: JSON.stringify({ email, password }),
 		});
 
@@ -24,6 +23,10 @@ export const login = async (email: string, password: string, setUser: Function) 
 		//localStorage.setItem("accessToken", accessToken);
 		//  localStorage.setItem("refreshToken", refreshToken);
 		//localStorage.setItem("user", JSON.stringify(user));
+		localStorage.setItem("jwt", JSON.stringify(data.JWT)) 
+		localStorage.setItem("userEmail", JSON.stringify(data.email));
+		localStorage.setItem("userId", JSON.stringify(data.id));
+
 
 		//return { user, accessToken, refreshToken, success: true };
 		return data;
@@ -52,14 +55,16 @@ export const signup = async (username: string, email: string, password: string, 
 		const data = await response.json();
 		console.log(data)
 
-		// Assuming `data` contains user information and a token
-		setUser(data.userEmail); // Update user in auth context
+		setUser(data.id); // Update user in auth context
+ const userObject = { id: data.id, email: data.email };
+  localStorage.setItem("user", JSON.stringify(userObject));
 
 		// Optional: store tokens or user data locally
 		// localStorage.setItem("accessToken", data.accessToken);
 		//localStorage.setItem("refreshToken", data.refreshToken);
-		localStorage.SetItem("jwt", JSON.stringify(data.JWT)) 
+		localStorage.setItem("jwt", JSON.stringify(data.JWT)) 
 		localStorage.setItem("userEmail", JSON.stringify(data.email));
+		localStorage.setItem("userId", JSON.stringify(data.id));
 
 
 		return data;

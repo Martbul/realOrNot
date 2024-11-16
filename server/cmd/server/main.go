@@ -19,16 +19,13 @@ import (
 
 func main() {
 
-	//Init logger
 	logger.Init()
 	log := logger.GetLogger()
 
-	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Error("Error loading .env file")
 	}
 
-	// Connect to the database
 	dbConn, err := db.ConnectDB(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Error("Failed to connect to database", "error", err)
@@ -36,7 +33,6 @@ func main() {
 	}
 	defer dbConn.Close()
 
-	//Settup routes
 	surveMux := mux.NewRouter()
 
 	surveMux.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -44,22 +40,18 @@ func main() {
 	})
 
 	mm := matchmaker.NewMatchmaker(2, dbConn)
-	//Registering routes
+
 	api := surveMux.PathPrefix("").Subrouter()
 	user.RegisterUserRoutes(api, dbConn)
 	game.RegisterGameRoutes(api, mm, dbConn)
 
-	//CORS
 	cors := gohandlers.CORS(
-		gohandlers.AllowedOrigins([]string{"*"}),                                       // allow the specific origin
-		gohandlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}), // allow methods
-		gohandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),           // allow necessary headers
-		gohandlers.AllowCredentials(),                                                  // Allow cookies (if you're using them)
+		gohandlers.AllowedOrigins([]string{"*"}),
+		gohandlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		gohandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		gohandlers.AllowCredentials(),
 	)
 
-	// CORS
-	//	cors := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"http://localhost:3000"}))
-	// Configure the server
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      cors(surveMux),

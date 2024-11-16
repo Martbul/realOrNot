@@ -7,10 +7,12 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/types"
+	"github.com/martbul/realOrNot/pkg/logger"
 )
 
-// CreateSession inserts a new session into the database
 func CreateSession(db *sqlx.DB, session *types.Session) error {
+
+	log := logger.GetLogger()
 	if db == nil {
 		return fmt.Errorf("db is nil in CreateSession")
 	}
@@ -25,7 +27,7 @@ func CreateSession(db *sqlx.DB, session *types.Session) error {
 	}
 
 	query := `
-		INSERT INTO sessions (session_id, players, rounds, status, created_at, expires_at)
+		INSERT INTO sessions (session_id, users, rounds, status, created_at, expires_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`
 	_, err = db.Exec(query,
 		session.ID,
@@ -35,6 +37,8 @@ func CreateSession(db *sqlx.DB, session *types.Session) error {
 		session.CreatedAt,
 		session.ExpiresAt,
 	)
+
+	log.Info("New session created")
 	return err
 }
 
@@ -48,7 +52,7 @@ func GetSessionByID(db *sqlx.DB, sessionID string) (*types.Session, error) {
 	var playersJSON, roundsJSON []byte
 
 	query := `
-		SELECT session_id, players, rounds, status, created_at, expires_at
+		SELECT session_id, users, rounds, status, created_at, expires_at
 		FROM sessions
 		WHERE session_id = $1`
 	err := db.QueryRow(query, sessionID).Scan(
@@ -105,7 +109,7 @@ func DeleteSession(db *sqlx.DB, sessionID string) error {
 }
 
 // UpdateSessionPlayers updates the list of players in a session in the database.
-func UpdateSessionPlayers(db *sqlx.DB, sessionID string, playerIDs []string) error {
+func UpdateSessionPlayers(db *sqlx.DB, sessionID string, players []*types.Player) error {
 	if db == nil {
 		return fmt.Errorf("db is nil in UpdateSessionPlayers")
 	}
@@ -124,10 +128,10 @@ func UpdateSessionPlayers(db *sqlx.DB, sessionID string, playerIDs []string) err
 	}
 
 	// Add new players to the session
-	for _, playerID := range playerIDs {
-		_, err = tx.Exec(`INSERT INTO session_players (session_id, player_id) VALUES ($1, $2)`, sessionID, playerID)
+	for _, player := range players {
+		_, err = tx.Exec(`INSERT INTO session_players (session_id, user_id) VALUES ($1, $2)`, sessionID, player.ID)
 		if err != nil {
-			return fmt.Errorf("failed to insert player %s into session: %v", playerID, err)
+			return fmt.Errorf("failed to insert user %s into session: %v", player.ID, err)
 		}
 	}
 

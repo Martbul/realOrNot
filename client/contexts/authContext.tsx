@@ -10,15 +10,14 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthContextWrapper({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User>({
-		username: "Guest",
-		email: undefined,
+		id:0,
 	});
 
 	useEffect(() => {
-		const user = localStorage.getItem("user");
+		const userId = localStorage.getItem("userId");
 
 		if (user) {
-			setUser(JSON.parse(user));
+			setUser(JSON.parse(userId));
 		}
 	}, []);
 

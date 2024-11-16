@@ -13,33 +13,34 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import { joinGame } from "@/services/game/game.service";
+import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/contexts/authContext";
 type JoinGameFormData = {
   userID: string; 
 };
 
+
 export default function Home() {
+  const { user } = useAuthContext(); // Getting user from the context
+  const router = useRouter();
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-	} = useForm<SignInFormData>();
-
-
+  // Mutation for joining a game
   const { mutate, isPending, isError, error } = useMutation({
-    mutationFn: async (data: JoinGameFormData) => {
-      const { email, password } = data;
-      const response = await joinGame(userId);
-      return response;
+    mutationFn: async () => {
+      if (!user) {
+        throw new Error("User is not authenticated.");
+      }
+      return await joinGame( user);
     },
     onSuccess: () => {
-      router.replace("/game/session{...}"); // Placeholder URL corrected
+      router.replace("/game/session"); // Redirect to game session on success
     },
   });
 
-  const onSubmit = (data: JoinGameFormData) => {
-    console.log("here submiting")
-    mutate(data);
+  // Submit handler
+  const handleJoinGame = () => {
+    mutate();
   };
 
   return (
@@ -69,16 +70,22 @@ export default function Home() {
         />
         <div className="flex flex-col sm:flex-row gap-4">
           <Dialog>
-
-					<form onSubmit={handleSubmit(onSubmit)}>
-            <DialogTrigger >
-              <Button type="submit" className="grad gradHover">Join a Game</Button>
+            <DialogTrigger asChild>
+              <Button
+                className="grad gradHover"
+                onClick={handleJoinGame}
+                disabled={isPending} // Disable button if the mutation is pending
+              >
+                {isPending ? "Joining..." : "Join a Game"}
+              </Button>
             </DialogTrigger>
-</form>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Waiting for players...</DialogTitle>
               </DialogHeader>
+              {isError && (
+                <p className="text-red-500 mt-2">Error: {error.message}</p>
+              )}
             </DialogContent>
           </Dialog>
           <Button className="grad gradHover w-full sm:w-auto">Start a Game</Button>

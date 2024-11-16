@@ -17,12 +17,10 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-// JoinGame handler allows a player to join the matchmaking queue
 func JoinGame(mm *matchmaker.Matchmaker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
 
-		// Decode player information from the request
 		var playerData struct {
 			PlayerID string `json:"player_id"`
 		}
@@ -31,14 +29,13 @@ func JoinGame(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			return
 		}
 
-		// Create a player instance
 		player := &types.Player{
 			ID:   playerData.PlayerID,
 			Conn: nil, // Will be set in WebSocket upgrade later
 		}
 
 		// Add player to the queue
-		newSession, err := mm.AddPlayer(player)
+		newSession, err := mm.QueuePlayer(player)
 		if err != nil {
 			log.Error("Error while adding player to matchmaker:", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -66,12 +63,10 @@ func JoinGame(mm *matchmaker.Matchmaker) http.HandlerFunc {
 	}
 }
 
-// GetGameStatus handler returns the current status of a game session by ID
 func GetGameStatus(dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
 
-		// Retrieve session ID from the URL
 		sessionID := mux.Vars(r)["id"]
 
 		// Fetch session from the database
@@ -86,7 +81,6 @@ func GetGameStatus(dbConn *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Return the session status
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"session_id": session.ID,
@@ -97,12 +91,10 @@ func GetGameStatus(dbConn *sqlx.DB) http.HandlerFunc {
 	}
 }
 
-// HandleWebSocketConnection upgrades the HTTP connection to a WebSocket for real-time communication
 func HandleWebSocketConnection(dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
 
-		// Retrieve session ID from the URL
 		sessionID := mux.Vars(r)["session_id"]
 
 		// Fetch the session from the database
@@ -127,7 +119,7 @@ func HandleWebSocketConnection(dbConn *sqlx.DB) http.HandlerFunc {
 
 		// Add the player to the session
 		player := &types.Player{ID: "new-player-id", Conn: conn}
-		session.Players = append(session.Players, player.ID)
+		session.Players = append(session.Players, player)
 
 		// Persist updated session players
 		err = db.UpdateSessionPlayers(dbConn, session.ID, session.Players)
@@ -137,7 +129,6 @@ func HandleWebSocketConnection(dbConn *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Start listening to the WebSocket connection
 		go listenToPlayer(player, session)
 	}
 }

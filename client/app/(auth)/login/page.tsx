@@ -40,7 +40,7 @@ const Login = () => {
 			return response;
 		},
 		onSuccess: () => {
-			router.replace("/posts");
+			router.replace("/");
 		},
 	});
 

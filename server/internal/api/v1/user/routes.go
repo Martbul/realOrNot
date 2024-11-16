@@ -7,7 +7,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// RegisterUserRoutes sets up the routes for user-related endpoints
 func RegisterUserRoutes(r *mux.Router, db *sqlx.DB) {
 	userRouter := r.PathPrefix("/user").Subrouter()
 	userRouter.HandleFunc("/signup", SignupUser(db)).Methods(http.MethodPost)

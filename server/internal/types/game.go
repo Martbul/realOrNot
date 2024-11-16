@@ -16,7 +16,7 @@ type Player struct {
 
 type Session struct {
 	ID        string    `db:"session_id"`
-	Players   []string  `db:"players"`
+	Players   []*Player `db:"players"`
 	Rounds    []Round   `db:"rounds"`
 	Status    string    `db:"status"`
 	CreatedAt time.Time `db:"created_at"`

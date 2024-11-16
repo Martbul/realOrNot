@@ -42,12 +42,14 @@ func main() {
 	surveMux.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	})
+
+	mm := matchmaker.NewMatchmaker(2, dbConn)
 	//Registering routes
 	api := surveMux.PathPrefix("").Subrouter()
 	user.RegisterUserRoutes(api, dbConn)
-	game.RegisterGameRoutes(api, &matchmaker.Matchmaker{}, dbConn)
-	//CORS
+	game.RegisterGameRoutes(api, mm, dbConn)
 
+	//CORS
 	cors := gohandlers.CORS(
 		gohandlers.AllowedOrigins([]string{"*"}),                                       // allow the specific origin
 		gohandlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}), // allow methods

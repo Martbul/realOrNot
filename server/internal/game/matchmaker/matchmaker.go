@@ -3,33 +3,56 @@ package matchmaker
 import (
 	"sync"
 
-	"github.com/martbul/realOrNot/internal/game"
-	"github.com/martbul/realOrNot/internal/game/session"
+	"github.com/jmoiron/sqlx"
+	"github.com/martbul/realOrNot/internal/db"
+	"github.com/martbul/realOrNot/internal/types"
 )
 
 type Matchmaker struct {
-	queue      []*game.Player
+	queue      []*types.Player
 	minPlayers int
 	mu         sync.Mutex
+	dbConn     *sqlx.DB
 }
 
-func NewMatchmaker(minPlayers int) *Matchmaker {
+// NewMatchmaker initializes a new Matchmaker
+func NewMatchmaker(minPlayers int, dbConn *sqlx.DB) *Matchmaker {
 	return &Matchmaker{
-		queue:      []*game.Player{},
+		queue:      []*types.Player{},
 		minPlayers: minPlayers,
+		dbConn:     dbConn,
 	}
 }
 
-func (m *Matchmaker) AddPlayer(player *game.Player) *session.Session {
+// AddPlayer adds a player to the queue and creates a session if the minimum players threshold is met
+func (m *Matchmaker) AddPlayer(player *types.Player) (*types.Session, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	m.queue = append(m.queue, player)
 
+	// If enough players are in the queue, create a new session
 	if len(m.queue) >= m.minPlayers {
 		players := m.queue[:m.minPlayers]
-		m.queue = m.queue[m.minPlayers:]
-		return session.NewSession(players)
+		m.queue = m.queue[m.minPlayers:] // Remove players from the queue
+
+		// Create a new session
+		newSession := &types.Session{
+			Players: make([]string, len(players)),
+			Status:  "active",
+		}
+
+		for i, p := range players {
+			newSession.Players[i] = p.ID
+		}
+
+		// Persist the session to the database
+		err := db.CreateSession(m.dbConn, newSession)
+		if err != nil {
+			return nil, err
+		}
+
+		return newSession, nil
 	}
-	return nil
+	return nil, nil
 }

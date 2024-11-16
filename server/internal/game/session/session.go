@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/martbul/realOrNot/internal/db"
 	"github.com/martbul/realOrNot/internal/game"
+	"github.com/martbul/realOrNot/internal/types"
 )
 
 type Session struct {
 	ID      string
-	Players []*game.Player
-	Rounds  []game.Round
+	Players []*types.Player
+	Rounds  []types.Round
 }
 
-func NewSession(players []*game.Player) *Session {
+func NewSession(players []*types.Player) *Session {
+
 	return &Session{
 		ID:      game.GenerateSessionID(),
 		Players: players,
@@ -75,4 +79,17 @@ func (s *Session) Start() {
 
 		time.Sleep(5 * time.Second)
 	}
+}
+
+func GetSessionById(dbConn *sqlx.DB, sessionID string) *types.Session {
+	session, err := db.GetSessionByID(dbConn, sessionID)
+	if err != nil {
+		fmt.Println("Error retrieving session:", err)
+	} else if session == nil {
+		fmt.Println("Session not found")
+	} else {
+		fmt.Println("Session retrieved:", session)
+	}
+
+	return session
 }

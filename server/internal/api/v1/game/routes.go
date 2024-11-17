@@ -8,13 +8,16 @@ import (
 	"github.com/martbul/realOrNot/internal/game/matchmaker"
 )
 
+// RegisterGameRoutes sets up the routes for game-related operations.
 func RegisterGameRoutes(r *mux.Router, matchmaker *matchmaker.Matchmaker, db *sqlx.DB) {
-
 	gameRouter := r.PathPrefix("/game").Subrouter()
 
-	gameRouter.HandleFunc("/join", JoinGame(matchmaker)).Methods(http.MethodPost)
+	// WebSocket-based game join route
+	gameRouter.HandleFunc("/join", JoinGameViaWebSocket(matchmaker)).Methods(http.MethodGet)
 
+	// WebSocket connection for a specific game session
 	gameRouter.HandleFunc("/session/{session_id}", HandleWebSocketConnection(db)).Methods(http.MethodGet)
 
-	gameRouter.HandleFunc("/{id}", GetGameStatus(db)).Methods(http.MethodGet)
+	// Fetch game session status
+	//	gameRouter.HandleFunc("/{id}", GetGameStatus(db)).Methods(http.MethodGet)
 }

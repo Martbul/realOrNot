@@ -1,8 +1,6 @@
 package types
 
 import (
-	"time"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -13,16 +11,6 @@ type Player struct {
 	Score    int             // Player's score, initialized to 0
 	IsReady  bool            // Indicates if the player is ready for the next round
 }
-
-type Session struct {
-	ID        string    `db:"session_id"`
-	Players   []*Player `db:"players"`
-	Rounds    []Round   `db:"rounds"`
-	Status    string    `db:"status"`
-	CreatedAt time.Time `db:"created_at"`
-	ExpiresAt time.Time `db:"expires_at"`
-}
-
 type Round struct {
 	RealImageURL string `json:"real_image_url"`
 	FakeImageURL string `json:"fake_image_url"`

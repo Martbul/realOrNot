@@ -6,8 +6,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/db"
+	"github.com/martbul/realOrNot/internal/game/session"
 	"github.com/martbul/realOrNot/internal/types"
-	"github.com/martbul/realOrNot/internal/util"
 )
 
 type Matchmaker struct {
@@ -26,7 +26,7 @@ func NewMatchmaker(minPlayers int, dbConn *sqlx.DB) *Matchmaker {
 }
 
 // AddPlayer adds a player to the queue and creates a session if the minimum players threshold is met
-func (m *Matchmaker) QueuePlayer(player *types.Player) (*types.Session, error) {
+func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -37,7 +37,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*types.Session, error) {
 		players := m.queue[:m.minPlayers]
 		m.queue = m.queue[m.minPlayers:] // Remove players from the queue
 
-		newSession := util.CreateNewSession(players)
+		newSession := session.NewSession(players)
 
 		for i, p := range players {
 			newSession.Players[i] = p

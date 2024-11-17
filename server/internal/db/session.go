@@ -6,11 +6,12 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/martbul/realOrNot/internal/game/session"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
 
-func CreateSession(db *sqlx.DB, session *types.Session) error {
+func CreateSession(db *sqlx.DB, session *session.Session) error {
 
 	log := logger.GetLogger()
 	if db == nil {
@@ -43,12 +44,12 @@ func CreateSession(db *sqlx.DB, session *types.Session) error {
 }
 
 // GetSessionByID retrieves a session by its ID
-func GetSessionByID(db *sqlx.DB, sessionID string) (*types.Session, error) {
+func GetSessionByID(db *sqlx.DB, sessionID string) (*session.Session, error) {
 	if db == nil {
 		return nil, fmt.Errorf("db is nil in GetSessionByID")
 	}
 
-	var session types.Session
+	var session session.Session
 	var playersJSON, roundsJSON []byte
 
 	query := `

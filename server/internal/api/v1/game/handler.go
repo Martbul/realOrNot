@@ -3,20 +3,18 @@ package game
 import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/jmoiron/sqlx"
-	"github.com/martbul/realOrNot/internal/db"
 	"github.com/martbul/realOrNot/internal/game/matchmaker"
 	"github.com/martbul/realOrNot/internal/game/session"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 	"net/http"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-// WebSocket connection handler for joining a game
 func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
@@ -28,7 +26,7 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
 			return
 		}
-		defer conn.Close()
+		defer conn.Close() // Ensure the connection gets closed when done
 
 		var playerData struct {
 			PlayerID string `json:"player_id"`
@@ -45,32 +43,47 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 		}
 
 		// Add player to the matchmaking queue
-		go handleMatchmaking(mm, player, conn)
-	}
-}
+		newSession, err := mm.QueuePlayer(player)
+		if err != nil {
+			log.Error("Error while adding player to matchmaker:", err)
+			conn.WriteJSON(map[string]string{"error": "Internal server error"})
+			return
+		}
 
-func handleMatchmaking(mm *matchmaker.Matchmaker, player *types.Player, conn *websocket.Conn) {
-	log := logger.GetLogger()
+		if newSession == nil {
+			// Notify the player that they have been added to the queue (only once)
+			log.Info("Player added to the queue. Waiting for more players...")
+			err := conn.WriteJSON(map[string]string{
+				"status":  "queued",
+				"message": "You have been added to the queue. Waiting for more players...",
+			})
+			if err != nil {
+				log.Error("Error sending queue message:", err)
+				return
+			}
 
-	// Inform the player that they are being queued
-	if err := conn.WriteJSON(map[string]string{
-		"status":  "queued",
-		"message": "You have been added to the queue. Waiting for more players...",
-	}); err != nil {
-		log.Error("Error sending queue status to player:", err)
-		return
-	}
+			// Start a goroutine to periodically send a "still waiting" message every 10 seconds
+			go func() {
+				for {
+					select {
+					case <-time.After(10 * time.Second):
+						// Send periodic "still waiting" message
+						err := conn.WriteJSON(map[string]string{
+							"status":  "waiting",
+							"message": "You are still in the queue, waiting for more players...",
+						})
+						if err != nil {
+							log.Error("Error sending waiting message:", err)
+							return // Stop sending if there's an error (connection might have closed)
+						}
+					}
+				}
+			}()
 
-	// Add player to the matchmaking queue
-	newSession, err := mm.QueuePlayer(player)
-	if err != nil {
-		log.Error("Error while adding player to matchmaker:", err)
-		conn.WriteJSON(map[string]string{"error": "Internal server error"})
-		return
-	}
+			return // Exit here since no session has been created yet
+		}
 
-	// Notify the player when a game is ready
-	if newSession != nil {
+		// Notify the player when a game is ready (if newSession is created)
 		log.Info("Game session created for player", player.ID)
 		if err := conn.WriteJSON(map[string]string{
 			"status":   "game_found",
@@ -80,27 +93,20 @@ func handleMatchmaking(mm *matchmaker.Matchmaker, player *types.Player, conn *we
 		}); err != nil {
 			log.Error("Error notifying player about game session:", err)
 		}
-		return
 	}
-
-	// If no game session is created (edge case), inform the player
-	conn.WriteJSON(map[string]string{"status": "error", "message": "Failed to find or create a game session."})
 }
 
-func HandleWebSocketConnection(dbConn *sqlx.DB) http.HandlerFunc {
+// Handler for players interacting with an existing session
+func HandleWebSocketConnection(mm *matchmaker.Matchmaker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
-
 		sessionID := mux.Vars(r)["session_id"]
 
-		// Fetch the session from the database
-		session, err := db.GetSessionByID(dbConn, sessionID)
-		if err != nil {
-			log.Error("Error retrieving session from database:", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-		if session == nil {
+		mm.Mu.Lock()
+		sess, exists := mm.Sessions[sessionID]
+		mm.Mu.Unlock()
+
+		if !exists {
 			http.Error(w, "Session not found", http.StatusNotFound)
 			return
 		}
@@ -114,23 +120,22 @@ func HandleWebSocketConnection(dbConn *sqlx.DB) http.HandlerFunc {
 		}
 		defer conn.Close()
 
-		// Add the player to the session
-		player := &types.Player{ID: "new-player-id", Conn: conn}
-		session.Players = append(session.Players, player)
-
-		// Persist updated session players
-		err = db.UpdateSessionPlayers(dbConn, session.ID, session.Players)
-		if err != nil {
-			log.Error("Failed to update session players:", err)
-			conn.WriteJSON(map[string]string{"error": "Internal server error"})
-			return
+		player := &types.Player{
+			ID:   "new-player-id", // Ideally, you'd retrieve or assign a proper ID
+			Conn: conn,
 		}
 
-		go listenToPlayer(player, session)
+		// Add the player to the session
+		mm.Mu.Lock()
+		sess.Players = append(sess.Players, player)
+		mm.Mu.Unlock()
+
+		go listenToPlayer(player, sess)
 	}
 }
 
-func listenToPlayer(player *types.Player, session *session.Session) {
+// Listen to messages from a player
+func listenToPlayer(player *types.Player, sess *session.Session) {
 	log := logger.GetLogger()
 
 	for {
@@ -144,6 +149,42 @@ func listenToPlayer(player *types.Player, session *session.Session) {
 
 		// Process the player's guess (placeholder logic)
 		log.Info("Player", player.ID, "guessed:", msg.Guess)
+	}
+}
+
+// Game session handler that triggers the game lifecycle
+func handleMatchmaking(mm *matchmaker.Matchmaker, player *types.Player, conn *websocket.Conn) {
+	log := logger.GetLogger()
+
+	if err := conn.WriteJSON(map[string]string{
+		"status":  "queued",
+		"message": "You have been added to the queue. Waiting for more players...",
+	}); err != nil {
+		log.Error("Error sending queue status to player:", err)
+		return
+	}
+
+	// Attempt to create a session
+	newSession, err := mm.QueuePlayer(player)
+	if err != nil {
+		log.Error("Error while adding player to matchmaker:", err)
+		conn.WriteJSON(map[string]string{"error": "Internal server error"})
+		return
+	}
+
+	if newSession != nil {
+		log.Info("Game session created for player", player.ID)
+		if err := conn.WriteJSON(map[string]string{
+			"status":  "game_found",
+			"session": newSession.ID,
+			"message": "Game session will start soon!",
+		}); err != nil {
+			log.Error("Error notifying player about game session:", err)
+		}
+
+		// Start the session after 5 seconds
+		time.Sleep(5 * time.Second)
+		mm.StartSession(newSession)
 	}
 }
 

@@ -28,21 +28,6 @@ func NewSession(players []*types.Player) *Session {
 	}
 }
 
-//type Session struct {
-//	ID      string
-//	Players []*types.Player
-//	Rounds  []types.Round
-//}
-
-//func NewSession(players []*types.Player) *Session {
-
-//	return &Session{
-//		ID:      game.GenerateSessionID(),
-//		Players: players,
-//		Rounds:  game.GenerateRounds(),
-//	}
-//}
-
 //func (s *Session) Start() {
 //	for roundIndex, round := range s.Rounds {
 //		for _, player := range s.Players {
@@ -97,17 +82,4 @@ func NewSession(players []*types.Player) *Session {
 //
 //		time.Sleep(5 * time.Second)
 //	}
-//}
-
-//func GetSessionById(dbConn *sqlx.DB, sessionID string) *types.Session {
-//	session, err := db.GetSessionByID(dbConn, sessionID)
-//	if err != nil {
-///		fmt.Println("Error retrieving session:", err)
-//	} else if session == nil {
-//		fmt.Println("Session not found")
-//	} else {
-//		fmt.Println("Session retrieved:", session)
-//	}
-//
-//	return session
 //}

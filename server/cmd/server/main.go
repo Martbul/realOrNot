@@ -39,7 +39,7 @@ func main() {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	mm := matchmaker.NewMatchmaker(2, dbConn)
+	mm := matchmaker.NewMatchmaker(2)
 
 	api := surveMux.PathPrefix("").Subrouter()
 	user.RegisterUserRoutes(api, dbConn)

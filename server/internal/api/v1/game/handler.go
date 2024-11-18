@@ -1,18 +1,23 @@
 package game
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/martbul/realOrNot/internal/game/matchmaker"
 	"github.com/martbul/realOrNot/internal/game/session"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
-	"net/http"
-	"time"
 )
 
 var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true },
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // Allow all origins
+	},
 }
 
 func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
@@ -22,17 +27,57 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 		// Upgrade the connection to WebSocket
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Error("Error upgrading connection to WebSocket:", err)
+			log.Error("WebSocket upgrade failed:", err)
 			http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
 			return
 		}
-		defer conn.Close() // Ensure the connection gets closed when done
 
+		// Channel to signal goroutine exit
+		done := make(chan struct{})
+
+		// Set WebSocket read deadlines and pong handler
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		conn.SetPongHandler(func(string) error {
+			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+			return nil
+		})
+
+		// Goroutine for reading messages (keeps connection alive)
+		go func() {
+			defer close(done) // Signal exit when goroutine finishes
+			for {
+				_, _, err := conn.ReadMessage()
+				if err != nil {
+					log.Error("WebSocket read error, closing connection:", err)
+					return
+				}
+			}
+		}()
+
+		// Goroutine for sending periodic "still waiting" messages
+		go func() {
+			for {
+				select {
+				case <-time.After(10 * time.Second):
+					if err := conn.WriteJSON(map[string]string{
+						"status":  "waiting",
+						"message": "Still waiting for more players to join...",
+					}); err != nil {
+						log.Error("Waiting message failed, closing connection:", err)
+						return
+					}
+				case <-done: // Exit loop if read goroutine finishes
+					return
+				}
+			}
+		}()
+
+		// Handle player joining
 		var playerData struct {
 			PlayerID string `json:"player_id"`
 		}
 		if err := conn.ReadJSON(&playerData); err != nil {
-			log.Error("Error reading player data from WebSocket:", err)
+			log.Error("Error reading player data:", err)
 			conn.WriteJSON(map[string]string{"error": "Invalid request payload"})
 			return
 		}
@@ -42,57 +87,32 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			Conn: conn,
 		}
 
-		// Add player to the matchmaking queue
+		// Add player to matchmaking queue
 		newSession, err := mm.QueuePlayer(player)
 		if err != nil {
-			log.Error("Error while adding player to matchmaker:", err)
+			log.Error("Error adding player to queue:", err)
 			conn.WriteJSON(map[string]string{"error": "Internal server error"})
 			return
 		}
 
-		if newSession == nil {
-			// Notify the player that they have been added to the queue (only once)
-			log.Info("Player added to the queue. Waiting for more players...")
-			err := conn.WriteJSON(map[string]string{
-				"status":  "queued",
-				"message": "You have been added to the queue. Waiting for more players...",
-			})
-			if err != nil {
-				log.Error("Error sending queue message:", err)
-				return
+		if newSession != nil {
+			if err := conn.WriteJSON(map[string]string{
+				"status":   "game_found",
+				"session":  newSession.ID,
+				"message":  "Game session started!",
+				"playerId": player.ID,
+			}); err != nil {
+				log.Error("Error notifying player about game session:", err)
 			}
-
-			// Start a goroutine to periodically send a "still waiting" message every 10 seconds
-			go func() {
-				for {
-					select {
-					case <-time.After(10 * time.Second):
-						// Send periodic "still waiting" message
-						err := conn.WriteJSON(map[string]string{
-							"status":  "waiting",
-							"message": "You are still in the queue, waiting for more players...",
-						})
-						if err != nil {
-							log.Error("Error sending waiting message:", err)
-							return // Stop sending if there's an error (connection might have closed)
-						}
-					}
-				}
-			}()
-
-			return // Exit here since no session has been created yet
 		}
 
-		// Notify the player when a game is ready (if newSession is created)
-		log.Info("Game session created for player", player.ID)
-		if err := conn.WriteJSON(map[string]string{
-			"status":   "game_found",
-			"session":  newSession.ID,
-			"message":  "Game session started!",
-			"playerId": player.ID,
-		}); err != nil {
-			log.Error("Error notifying player about game session:", err)
-		}
+		// Block until the `done` channel is closed
+		<-done
+
+		// Close the WebSocket connection when done
+		log.Info("Closing WebSocket connection for player:", player.ID)
+		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+		conn.Close()
 	}
 }
 

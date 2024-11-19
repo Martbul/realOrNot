@@ -39,6 +39,7 @@ func main() {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
+	// Move to config dir
 	mm := matchmaker.NewMatchmaker(2)
 
 	api := surveMux.PathPrefix("").Subrouter()

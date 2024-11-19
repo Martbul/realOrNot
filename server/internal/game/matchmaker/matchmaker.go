@@ -31,7 +31,6 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 	defer m.Mu.Unlock()
 
 	m.queue = append(m.queue, player)
-
 	// Inform the player that they are in the queue
 	if err := player.Conn.WriteJSON(map[string]string{
 		"status":  "queued",
@@ -142,48 +141,3 @@ func (m *Matchmaker) endSession(sess *session.Session) {
 		}
 	}
 }
-
-//type Matchmaker struct {
-//	queue      []*types.Player
-//	minPlayers int
-//	mu         sync.Mutex
-//	dbConn     *sqlx.DB
-//}
-
-//func NewMatchmaker(minPlayers int, dbConn *sqlx.DB) *Matchmaker {
-//	return &Matchmaker{
-//		queue:      []*types.Player{},
-//		minPlayers: minPlayers,
-//		dbConn:     dbConn,
-//	}
-//}
-
-// AddPlayer adds a player to the queue and creates a session if the minimum players threshold is met
-//func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error) {
-//	m.mu.Lock()
-//	defer m.mu.Unlock()
-//
-//	m.queue = append(m.queue, player)
-//	fmt.Println(player)
-//	// If enough players are in the queue, create a new session
-//	if len(m.queue) >= m.minPlayers {
-//		players := m.queue[:m.minPlayers]
-//		m.queue = m.queue[m.minPlayers:] // Remove players from the queue
-//
-//		newSession := session.NewSession(players)
-//
-//		for i, p := range players {
-//			newSession.Players[i] = p
-//		}
-
-// Persist the session to the database
-//		err := db.CreateSession(m.dbConn, newSession)
-//		if err != nil {
-///			fmt.Println("error creating session`")
-//			return nil, err
-///		}
-//
-///		return newSession, nil
-///	}
-//	return nil, nil
-//}

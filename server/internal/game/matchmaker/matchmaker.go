@@ -11,10 +11,12 @@ import (
 )
 
 type Matchmaker struct {
-	queue      []*types.Player
-	Sessions   map[string]*session.Session // In-memory session storage
-	minPlayers int
 	Mu         sync.Mutex
+	queue      []*types.Player
+	Sessions   map[string]*session.Session
+	minPlayers int
+	// Shared map to track if players are in an active game
+	PlayerStates sync.Map // map[playerID]bool (true = in game, false = waiting)
 }
 
 func NewMatchmaker(minPlayers int) *Matchmaker {
@@ -31,6 +33,10 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 	defer m.Mu.Unlock()
 
 	m.queue = append(m.queue, player)
+
+	// Mark player as waiting
+	m.PlayerStates.Store(player.ID, false)
+
 	// Inform the player that they are in the queue
 	if err := player.Conn.WriteJSON(map[string]string{
 		"status":  "queued",
@@ -48,6 +54,11 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 		// Create a new session
 		newSession := session.NewSession(players)
 		m.Sessions[newSession.ID] = newSession // Add to in-memory sessions
+
+		// Mark players as in-game
+		for _, p := range players {
+			m.PlayerStates.Store(p.ID, true)
+		}
 
 		// Notify players about the game session start
 		for _, p := range players {

@@ -32,7 +32,7 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			return
 		}
 
-		// Channel to signal goroutine exit
+		// Channels to signal goroutine exit
 		done := make(chan struct{})
 
 		// Set WebSocket read deadlines and pong handler
@@ -41,36 +41,6 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 			return nil
 		})
-
-		// Goroutine for reading messages (keeps connection alive)
-		go func() {
-			defer close(done) // Signal exit when goroutine finishes
-			for {
-				_, _, err := conn.ReadMessage()
-				if err != nil {
-					log.Error("WebSocket read error, closing connection:", err)
-					return
-				}
-			}
-		}()
-
-		// Goroutine for sending periodic "still waiting" messages
-		go func() {
-			for {
-				select {
-				case <-time.After(10 * time.Second):
-					if err := conn.WriteJSON(map[string]string{
-						"status":  "waiting",
-						"message": "Still waiting for more players to join...",
-					}); err != nil {
-						log.Error("Waiting message failed, closing connection:", err)
-						return
-					}
-				case <-done: // Exit loop if read goroutine finishes
-					return
-				}
-			}
-		}()
 
 		// Handle player joining
 		var playerData struct {
@@ -87,6 +57,29 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			Conn: conn,
 		}
 
+		// Goroutine for sending periodic "still waiting" messages
+		go func() {
+			for {
+				select {
+				case <-time.After(10 * time.Second):
+					// Check if the player is in a game
+					if inGame, ok := mm.PlayerStates.Load(player.ID); ok && inGame.(bool) {
+						return // Exit loop if player is in a game
+					}
+
+					if err := conn.WriteJSON(map[string]string{
+						"status":  "waiting",
+						"message": "Still waiting for more players to join...",
+					}); err != nil {
+						log.Error("Waiting message failed, closing connection:", err)
+						return
+					}
+				case <-done: // Exit loop if connection is closed
+					return
+				}
+			}
+		}()
+
 		// Add player to matchmaking queue
 		newSession, err := mm.QueuePlayer(player)
 		if err != nil {
@@ -95,6 +88,7 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			return
 		}
 
+		// Notify player if they joined a session
 		if newSession != nil {
 			if err := conn.WriteJSON(map[string]string{
 				"status":   "game_found",

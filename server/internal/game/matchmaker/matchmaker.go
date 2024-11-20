@@ -10,6 +10,14 @@ import (
 	"github.com/martbul/realOrNot/pkg/logger"
 )
 
+var correctAnswers = map[int]string{
+	1: "https://example.com/round_1_real_image.jpg",
+	2: "https://example.com/round_2_real_image.jpg",
+	3: "https://example.com/round_3_real_image.jpg",
+	4: "https://example.com/round_4_real_image.jpg",
+	5: "https://example.com/round_5_real_image.jpg",
+}
+
 type Matchmaker struct {
 	Mu         sync.Mutex
 	queue      []*types.Player
@@ -94,7 +102,6 @@ func (m *Matchmaker) StartSession(sess *session.Session) {
 	sess.Status = "active"
 	m.Mu.Unlock()
 
-	// Notify players the game is starting
 	for _, p := range sess.Players {
 		if p.Conn != nil {
 			p.Conn.WriteJSON(map[string]string{
@@ -103,51 +110,105 @@ func (m *Matchmaker) StartSession(sess *session.Session) {
 				"rounds":  "5",
 			})
 
-			// Simulate sending an image for the game (replace with real game data)
-			p.Conn.WriteJSON(map[string]interface{}{
-				"image_url": "https://example.com/game_image.jpg",
-				"message":   "Round 1 starts now!",
-			})
 		}
 	}
 
-	// Simulate the game lifecycle
 	go m.runGame(sess)
 }
 
-// runGame manages the game rounds (placeholder for actual game logic)
 func (m *Matchmaker) runGame(sess *session.Session) {
-	for i := 1; i <= 5; i++ {
-		time.Sleep(30 * time.Second) // Simulate round duration
+
+	log := logger.GetLogger()
+	// Initialize player scores
+	scores := make(map[string]int)
+	for _, p := range sess.Players {
+		scores[p.ID] = 0
+	}
+
+	// Simulate game rounds
+	for round := 1; round <= 2; round++ {
+		time.Sleep(10 * time.Second) // Simulate round duration
 
 		// Notify players of the next round
 		for _, p := range sess.Players {
 			if p.Conn != nil {
 				p.Conn.WriteJSON(map[string]interface{}{
-					"round":     i,
-					"message":   fmt.Sprintf("Round %d is starting now!", i),
-					"image_url": fmt.Sprintf("https://example.com/round_%d_image.jpg", i),
+					"round":     round,
+					"message":   fmt.Sprintf("Round %d is starting now!", round),
+					"image_url": fmt.Sprintf("https://example.com/round_%d_image.jpg", round),
 				})
+			}
+		}
+
+		// Wait for player guesses
+		guesses := make(chan struct {
+			PlayerID string
+			Guess    string
+		})
+
+		// Read guesses asynchronously
+		for _, p := range sess.Players {
+			go func(player *types.Player) {
+				var guess struct {
+					PlayerID string `json:"player_id"`
+					Guess    string `json:"guess"`
+				}
+
+				if err := player.Conn.ReadJSON(&guess); err == nil {
+					guesses <- struct {
+						PlayerID string
+						Guess    string
+					}{PlayerID: player.ID, Guess: guess.Guess}
+				}
+			}(p)
+		}
+
+		// Process guesses
+		timeout := time.After(15 * time.Second) // Allow 15 seconds for guesses
+		receivedGuesses := 0
+		for receivedGuesses < len(sess.Players) {
+			select {
+			case guess := <-guesses:
+				if guess.Guess == correctAnswers[round] {
+					scores[guess.PlayerID]++
+				}
+				receivedGuesses++
+			case <-timeout:
+				log.Info("Round ended, proceeding to the next.")
+				break
 			}
 		}
 	}
 
 	// End the session
-	m.endSession(sess)
+	m.endSession(sess, scores)
 }
 
-// endSession cleans up the session and notifies players
-func (m *Matchmaker) endSession(sess *session.Session) {
+func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
 
 	delete(m.Sessions, sess.ID) // Remove session from in-memory storage
 
+	// Determine the winner(s)
+	var highestScore int
+	var winners []string
+	for playerID, score := range scores {
+		if score > highestScore {
+			highestScore = score
+			winners = []string{playerID}
+		} else if score == highestScore {
+			winners = append(winners, playerID)
+		}
+	}
+
 	for _, p := range sess.Players {
 		if p.Conn != nil {
-			p.Conn.WriteJSON(map[string]string{
+			p.Conn.WriteJSON(map[string]interface{}{
 				"status":  "game_end",
 				"message": "The game has ended. Thanks for playing!",
+				"scores":  scores,
+				"winner":  winners,
 			})
 		}
 	}

@@ -118,7 +118,7 @@ func (m *Matchmaker) StartSession(sess *session.Session) {
 
 func (m *Matchmaker) runGame(sess *session.Session) {
 
-	log := logger.GetLogger()
+	//	log := logger.GetLogger()
 	// Initialize player scores
 	scores := make(map[string]int)
 	for _, p := range sess.Players {
@@ -164,7 +164,7 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 		}
 
 		// Process guesses
-		timeout := time.After(15 * time.Second) // Allow 15 seconds for guesses
+		//timeout := time.After(15 * time.Second) // Allow 15 seconds for guesses
 		receivedGuesses := 0
 		for receivedGuesses < len(sess.Players) {
 			select {
@@ -173,9 +173,9 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 					scores[guess.PlayerID]++
 				}
 				receivedGuesses++
-			case <-timeout:
-				log.Info("Round ended, proceeding to the next.")
-				break
+				//case <-timeout:
+				//	log.Info("Round ended, proceeding to the next.")
+				//	break
 			}
 		}
 	}

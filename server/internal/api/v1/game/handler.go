@@ -4,10 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/martbul/realOrNot/internal/game/matchmaker"
-	"github.com/martbul/realOrNot/internal/game/session"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
@@ -107,97 +105,5 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 		log.Info("Closing WebSocket connection for player:", player.ID)
 		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		conn.Close()
-	}
-}
-
-// Handler for players interacting with an existing session
-func HandleWebSocketConnection(mm *matchmaker.Matchmaker) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log := logger.GetLogger()
-		sessionID := mux.Vars(r)["session_id"]
-
-		mm.Mu.Lock()
-		sess, exists := mm.Sessions[sessionID]
-		mm.Mu.Unlock()
-
-		if !exists {
-			http.Error(w, "Session not found", http.StatusNotFound)
-			return
-		}
-
-		// Upgrade the connection to WebSocket
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Error("Error upgrading connection to WebSocket:", err)
-			http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
-			return
-		}
-		defer conn.Close()
-
-		player := &types.Player{
-			ID:   "new-player-id", // Ideally, you'd retrieve or assign a proper ID
-			Conn: conn,
-		}
-
-		// Add the player to the session
-		mm.Mu.Lock()
-		sess.Players = append(sess.Players, player)
-		mm.Mu.Unlock()
-
-		go listenToPlayer(player, sess)
-	}
-}
-
-// Listen to messages from a player
-func listenToPlayer(player *types.Player, sess *session.Session) {
-	log := logger.GetLogger()
-
-	for {
-		var msg struct {
-			Guess string `json:"guess"`
-		}
-		if err := player.Conn.ReadJSON(&msg); err != nil {
-			log.Error("Error reading message from player:", err)
-			break
-		}
-
-		// Process the player's guess (placeholder logic)
-		log.Info("Player", player.ID, "guessed:", msg.Guess)
-	}
-}
-
-// Game session handler that triggers the game lifecycle
-func handleMatchmaking(mm *matchmaker.Matchmaker, player *types.Player, conn *websocket.Conn) {
-	log := logger.GetLogger()
-
-	if err := conn.WriteJSON(map[string]string{
-		"status":  "queued",
-		"message": "You have been added to the queue. Waiting for more players...",
-	}); err != nil {
-		log.Error("Error sending queue status to player:", err)
-		return
-	}
-
-	// Attempt to create a session
-	newSession, err := mm.QueuePlayer(player)
-	if err != nil {
-		log.Error("Error while adding player to matchmaker:", err)
-		conn.WriteJSON(map[string]string{"error": "Internal server error"})
-		return
-	}
-
-	if newSession != nil {
-		log.Info("Game session created for player", player.ID)
-		if err := conn.WriteJSON(map[string]string{
-			"status":  "game_found",
-			"session": newSession.ID,
-			"message": "Game session will start soon!",
-		}); err != nil {
-			log.Error("Error notifying player about game session:", err)
-		}
-
-		// Start the session after 5 seconds
-		time.Sleep(5 * time.Second)
-		mm.StartSession(newSession)
 	}
 }

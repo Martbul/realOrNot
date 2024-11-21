@@ -4,18 +4,20 @@ import { AuthContextType, User } from "@/utils/interfaces";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext<AuthContextType>({
-	user: { username: "Guest", email: undefined },
+	user: { id: "-1" },
 	setUser: () => { },
 });
 
 export function AuthContextWrapper({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User>({
-		id:0,
+		id: "-1",
 	});
 
 	useEffect(() => {
-		const userId = localStorage.getItem("userId");
-
+		let userId = localStorage.getItem("userId");
+		if (userId == null) {
+			userId = "-1"
+		}
 		if (user) {
 			setUser(JSON.parse(userId));
 		}

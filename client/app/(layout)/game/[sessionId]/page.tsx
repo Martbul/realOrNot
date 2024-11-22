@@ -6,11 +6,6 @@ import { useGameContext } from "@/contexts/gameContext";
 const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
 	const [response, setResponse] = useState<string>("");
 
-
-
-
-
-
 	const { game, setGame } = useGameContext(); // Getting user from the context
 
 	const sendGuess = (round: number, guess: string) => {
@@ -22,6 +17,9 @@ const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
 		//	setResponse(""); // Clear response after sending
 	};
 
+	useEffect(() => {
+		console.log(game)
+	}, [game])
 	if (!game) {
 		return <div>Loading game...</div>;
 	}
@@ -32,7 +30,7 @@ const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
 				Round {game.currentRound} of {game.totalRounds}
 			</h1>
 
-			{/* Display images for the current round */}			<div className="image-grid">
+			<div className="image-grid">
 				{game.images.map((image, index) => (
 					<img key={index} src={image} alt={`Image ${index + 1}`} />
 				))}

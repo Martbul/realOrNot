@@ -128,14 +128,16 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 	// Simulate game rounds
 	for round := 1; round <= 2; round++ {
 		time.Sleep(10 * time.Second) // Simulate round duration
-
 		// Notify players of the next round
+		players := []*types.Player{}
 		for _, p := range sess.Players {
+			players = append(players, p)
 			if p.Conn != nil {
 				p.Conn.WriteJSON(map[string]interface{}{
 					"round":     round,
 					"message":   fmt.Sprintf("Round %d is starting now!", round),
 					"image_url": fmt.Sprintf("https://example.com/round_%d_image.jpg", round),
+					"players":   players,
 				})
 			}
 		}

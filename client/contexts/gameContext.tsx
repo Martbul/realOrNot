@@ -4,7 +4,7 @@ import { Game, GameContextType } from "@/utils/interfaces";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const GameContext = createContext<GameContextType>({
-	game: { currentRound: null, totalRounds: 5, scores: {}, images: [], sessionId: null },
+	game: { currentRound: null, totalRounds: 5, players: [], scores: {}, images: [], sessionId: null },
 	setGame: () => { },
 });
 
@@ -12,6 +12,7 @@ export function GameContextWrapper({ children }: { children: React.ReactNode }) 
 	const [game, setGame] = useState<Game>({
 		currentRound: null,
 		totalRounds: 5,
+		players: [],
 		scores: {},
 		images: [],
 		sessionId: null

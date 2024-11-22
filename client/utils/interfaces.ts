@@ -20,6 +20,7 @@ export interface GameContextType {
 export interface Game {
   currentRound: any,
   totalRounds: number,
+  players: [],
   scores: {},
   images: [],
   sessionId: any,

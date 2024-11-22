@@ -28,14 +28,12 @@ export const joinGame = (userId: string, game: Game, setGame: any) => {
 					//gameState.totalRounds = parseInt(message.rounds, 10) || 5;
 				} else if (message.round) {
 					console.log("New round started:", message);
-					setGame((prevState) => ({
-						currentRound: message.round
 
-					}))
-					//gameState.round = message.round;
-
-					//gameState.images = message.image_url;
-
+					setGame((prevGame: Game) => ({
+						...prevGame,
+						currentRound: message.round,
+						//images.push(message.)
+					}));
 				} else if (message.status === "game_end") {
 					console.log("Game ended:", message);
 					alert(`Game over! Winner(s): ${message.winner.join(", ")}`);

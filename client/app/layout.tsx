@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthContextWrapper } from "@/contexts/authContext";
+import { GameContextWrapper } from "@/contexts/gameContext";
 import Provider from "@/utils/Provider";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,15 +27,17 @@ export default function RootLayout({
 }>) {
   return (
     <AuthContextWrapper>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <Provider>{children}</Provider>
-        </body>
-      </html>
+      <GameContextWrapper>
+        <html lang="en">
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            <Provider>{children}</Provider>
+          </body>
+        </html>
 
 
+      </GameContextWrapper>
     </AuthContextWrapper>
   );
 }

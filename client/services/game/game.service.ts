@@ -1,22 +1,9 @@
 
-
-
-export const joinGame = (userId: string) => {
+import { Game } from "@/utils/interfaces";
+export const joinGame = (userId: string, game: Game, setGame: any) => {
 	const socketUrl = "ws://localhost:8080/game/join"; // Use `wss://` if on HTTPS
-
-	console.log("CLIENT JOINING A GAME REQ");
-	console.log(userId);
-
 	return new Promise((resolve, reject) => {
 		const socket = new WebSocket(socketUrl);
-
-		const gameState = {
-			round: 0,
-			totalRounds: 5,
-			scores: {},
-			images: [],
-			sessionId: null,
-		};
 
 		socket.onopen = () => {
 			console.log("WebSocket connection established");
@@ -38,11 +25,17 @@ export const joinGame = (userId: string) => {
 					resolve(message.session)
 				} else if (message.status === "game_start") {
 					console.log("Game starting:", message);
-					gameState.totalRounds = parseInt(message.rounds, 10) || 5;
+					//gameState.totalRounds = parseInt(message.rounds, 10) || 5;
 				} else if (message.round) {
 					console.log("New round started:", message);
-					gameState.round = message.round;
-					gameState.images = [message.image_url];
+					setGame((prevState) => ({
+						currentRound: message.round
+
+					}))
+					//gameState.round = message.round;
+
+					//gameState.images = message.image_url;
+
 				} else if (message.status === "game_end") {
 					console.log("Game ended:", message);
 					alert(`Game over! Winner(s): ${message.winner.join(", ")}`);

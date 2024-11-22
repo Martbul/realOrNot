@@ -1,58 +1,39 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { joinGame } from "@/services/game/game.service";
+import { useGameContext } from "@/contexts/gameContext";
 
 const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
-	const [socket, setSocket] = useState<WebSocket | null>(null);
-	const [gameState, setGameState] = useState<{
-		round: number;
-		totalRounds: number;
-		scores: Record<string, number>;
-		images: string[];
-		sessionId: string | null;
-	} | null>(null);
 	const [response, setResponse] = useState<string>("");
 
-	useEffect(() => {
-		const startGame = async () => {
-			try {
-				const { socket: gameSocket, gameState: initialGameState } = await joinGame(userId);
-				setSocket(gameSocket);
-				setGameState(initialGameState);
-			} catch (error) {
-				console.error("Error joining game:", error);
-			}
-		};
 
-		startGame();
 
-		return () => {
-			socket?.close(); // Clean up WebSocket on component unmount
-		};
-	}, [userId]);
+
+
+
+	const { game, setGame } = useGameContext(); // Getting user from the context
 
 	const sendGuess = (round: number, guess: string) => {
-		if (!socket) return;
+		//	if (!socket) return;
 
-		const payload = { player_id: userId, guess };
-		socket.send(JSON.stringify(payload));
-		console.log("Sent guess:", payload);
-		setResponse(""); // Clear response after sending
+		//	const payload = { player_id: userId, guess };
+		//	socket.send(JSON.stringify(payload));
+		//	console.log("Sent guess:", payload);
+		//	setResponse(""); // Clear response after sending
 	};
 
-	if (!gameState) {
+	if (!game) {
 		return <div>Loading game...</div>;
 	}
 
 	return (
 		<div>
 			<h1>
-				Round {gameState.round} of {gameState.totalRounds}
+				Round {game.currentRound} of {game.totalRounds}
 			</h1>
 
-			{/* Display images for the current round */}
-			<div className="image-grid">
-				{gameState.images.map((image, index) => (
+			{/* Display images for the current round */}			<div className="image-grid">
+				{game.images.map((image, index) => (
 					<img key={index} src={image} alt={`Image ${index + 1}`} />
 				))}
 			</div>
@@ -64,7 +45,7 @@ const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
 				onChange={(e) => setResponse(e.target.value)}
 				placeholder="Enter your guess"
 			/>
-			<button onClick={() => sendGuess(gameState.round, response)}>Submit</button>
+			<button onClick={() => sendGuess(game.currentRound, response)}>Submit</button>
 		</div>
 	);
 };

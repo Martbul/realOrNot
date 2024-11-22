@@ -16,10 +16,12 @@ import {
 import { joinGame } from "@/services/game/game.service";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/contexts/authContext";
+import { useGameContext } from "@/contexts/gameContext";
 
 
 export default function Home() {
   const { user } = useAuthContext(); // Getting user from the context
+  const { game, setGame } = useGameContext(); // Getting user from the context
   const router = useRouter();
 
   // Mutation for joining a game
@@ -28,7 +30,7 @@ export default function Home() {
       if (!user) {
         throw new Error("User is not authenticated.");
       }
-      return await joinGame(user.id);
+      return await joinGame(user.id, game, setGame);
     },
     onSuccess: (sessionID) => {
       router.replace(`/game/${sessionID}`); // Redirect to game session with session ID

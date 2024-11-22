@@ -10,3 +10,17 @@ export interface AuthContextType {
   user: User;
   setUser: Dispatch<SetStateAction<User>>;
 }
+
+export interface GameContextType {
+
+  game: Game;
+  setGame: Dispatch<SetStateAction<Game>>;
+}
+
+export interface Game {
+  currentRound: any,
+  totalRounds: number,
+  scores: {},
+  images: [],
+  sessionId: any,
+}

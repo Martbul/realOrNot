@@ -2,6 +2,7 @@ package matchmaker
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -10,14 +11,6 @@ import (
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
-
-var correctAnswers = map[int]string{
-	1: "https://example.com/round_1_real_image.jpg",
-	2: "https://example.com/round_2_real_image.jpg",
-	3: "https://example.com/round_3_real_image.jpg",
-	4: "https://example.com/round_4_real_image.jpg",
-	5: "https://example.com/round_5_real_image.jpg",
-}
 
 type Matchmaker struct {
 	Mu         sync.Mutex
@@ -85,7 +78,6 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 			}(p, newSession)
 		}
 
-		// Start the game after 5 seconds
 		go m.StartSession(newSession)
 
 		return newSession, nil
@@ -95,9 +87,8 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 	return nil, nil
 }
 
-// startSession initializes the session after a delay
 func (m *Matchmaker) StartSession(sess *session.Session) {
-	time.Sleep(5 * time.Second) // Delay before starting
+	time.Sleep(5 * time.Second)
 
 	m.Mu.Lock()
 	sess.Status = "active"
@@ -119,17 +110,17 @@ func (m *Matchmaker) StartSession(sess *session.Session) {
 
 func (m *Matchmaker) runGame(sess *session.Session) {
 
-	//	log := logger.GetLogger()
+	log := logger.GetLogger()
 	// Initialize player scores
 	scores := make(map[string]int)
 	for _, p := range sess.Players {
 		scores[p.ID] = 0
 	}
 
-	roundData := game.Generate5Rounds()
-
 	// Simulate game rounds
-	for round := 1; round <= 2; round++ {
+	for round := 1; round <= 5; round++ {
+
+		roundData := game.Generate5Rounds()
 		if round != 1 {
 
 			time.Sleep(10 * time.Second) // Simulate round duration
@@ -172,32 +163,37 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 		}
 
 		// Process guesses
-		//timeout := time.After(15 * time.Second) // Allow 15 seconds for guesses
+		//	guessTime := time.After(15 * time.Second)
 		receivedGuesses := 0
 		for receivedGuesses < len(sess.Players) {
 			select {
 			case guess := <-guesses:
-				if guess.Guess == correctAnswers[round] {
+				if guess.Guess == roundData.Correct {
 					scores[guess.PlayerID]++
 				}
 				receivedGuesses++
-				//case <-timeout:
-				//	log.Info("Round ended, proceeding to the next.")
-				//	break
+				//		case <-guessTime:
+				//			log.Info("Time ended, proceeding to the next.")
+				//			break
 			}
 		}
 	}
 
-	// End the session
+	//BUG:  The code got the the 5 round but did not envoked the endSession func
+	//BUG: This error is not consistent!!! /possible race condittion!/
+	log.Debug("Run game was executed!")
 	m.endSession(sess, scores)
 }
 
 func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
+
+	log := logger.GetLogger()
 	m.Mu.Lock()
+
 	defer m.Mu.Unlock()
 
 	delete(m.Sessions, sess.ID) // Remove session from in-memory storage
-
+	log.Debug("Ending session")
 	// Determine the winner(s)
 	var highestScore int
 	var winners []string
@@ -210,7 +206,10 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
 		}
 	}
 
+	log.Debug("winner determined")
 	for _, p := range sess.Players {
+
+		log.Debug("Sending end game stats in ws")
 		if p.Conn != nil {
 			p.Conn.WriteJSON(map[string]interface{}{
 				"status":  "game_end",

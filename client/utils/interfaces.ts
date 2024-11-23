@@ -24,4 +24,5 @@ export interface Game {
   scores: {},
   roundData: any,
   sessionId: any,
+  ws: any,
 }

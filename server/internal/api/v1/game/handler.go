@@ -40,7 +40,6 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 			return nil
 		})
 
-		// Handle player joining
 		var playerData struct {
 			PlayerID string `json:"player_id"`
 		}

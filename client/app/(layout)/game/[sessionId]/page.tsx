@@ -1,27 +1,27 @@
 
 'use client';
 import React, { useEffect, useState } from "react";
-import { joinGame } from "@/services/game/game.service";
 import { useGameContext } from "@/contexts/gameContext";
-
-const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
-	const [response, setResponse] = useState<string>("");
-	const [timer, setTimer] = useState<number>(5); // Timer starts at 5 seconds
+import { useAuthContext } from "@/contexts/authContext";
+const GamePage: React.FC = ({ params }) => {
+	const [timer, setTimer] = useState<number>(5);
 	const [showTimer, setShowTimer] = useState<boolean>(true); // Controls overlay visibility
+	const [selectedImage, setSelectedImage] = useState<string | null>(null); // Track selected image
 
-	const { game, setGame } = useGameContext(); // Getting game context
+	const { game } = useGameContext();
+	const { user } = useAuthContext();
 
-	const sendGuess = (round: number, guess: string) => {
-		//	if (!socket) return;
+	const sendGuess = (guess: string) => {
+		if (!game.ws || selectedImage) return; // Prevent further guesses after selection
 
-		//	const payload = { player_id: userId, guess };
-		//	socket.send(JSON.stringify(payload));
-		//	console.log("Sent guess:", payload);
-		//	setResponse(""); // Clear response after sending
+		const payload = { "player_id": user, guess };
+		game.ws.send(JSON.stringify(payload));
+		console.log("Sent guess:", payload);
+
+		setSelectedImage(guess); // Set the selected image to prevent further clicks
 	};
 
 	useEffect(() => {
-		// Countdown logic
 		if (timer > 0) {
 			const timeout = setTimeout(() => setTimer((prev) => prev - 1), 1000);
 			return () => clearTimeout(timeout);
@@ -32,6 +32,13 @@ const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
 
 	useEffect(() => {
 		console.log(game);
+		console.log(user);
+		// Reset the selected image when a new round starts
+		if (game && game.roundData) {
+			setSelectedImage(null); // Clear the selection for a new round
+			//			setTimer(5); // Reset the timer for the next round
+			//setShowTimer(true); // Show the timer overlay again
+		}
 	}, [game]);
 
 	if (!game) {
@@ -65,41 +72,32 @@ const GamePage: React.FC<{ userId: string }> = ({ userId }) => {
 			{/* Image Grid */}
 			{game.roundData && (
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto mb-6">
-					<div className="relative w-full h-64 sm:h-96">
-						<img
-							src={game.roundData.img_1_url}
-							alt="Image 1"
-							className="absolute inset-0 w-full h-full object-contain rounded-lg shadow-md"
-						/>
-					</div>
-					<div className="relative w-full h-64 sm:h-96">
-						<img
-							src={game.roundData.img_2_url}
-							alt="Image 2"
-							className="absolute inset-0 w-full h-full object-contain rounded-lg shadow-md"
-						/>
-					</div>
+					{["img_1_url", "img_2_url"].map((key, index) => (
+						<div
+							key={key}
+							className={`relative w-full h-64 sm:h-96 rounded-lg shadow-md cursor-pointer 
+              ${selectedImage
+									? selectedImage === game.roundData[key]
+										? "border-4 border-green-500"
+										: "opacity-50 cursor-not-allowed"
+									: "hover:scale-105 hover:border-4 hover:border-indigo-500 transform transition duration-300"
+								}`}
+							onClick={() => {
+								if (!selectedImage) sendGuess(game.roundData[key]);
+							}}
+						>
+							<img
+								src={game.roundData[key]}
+								alt={`Image ${index + 1}`}
+								className="absolute inset-0 w-full h-full object-contain"
+							/>
+						</div>
+					))}
 				</div>
 			)}
-
-			{/* Guess Input */}
-			<div className="max-w-lg mx-auto text-center">
-				<input
-					type="text"
-					value={response}
-					onChange={(e) => setResponse(e.target.value)}
-					placeholder="Enter your guess"
-					className="w-full p-3 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-				/>
-				<button
-					onClick={() => sendGuess(game.currentRound, response)}
-					className="w-full mt-4 p-3 bg-indigo-600 text-white font-medium rounded-md shadow-md hover:bg-indigo-700"
-				>
-					Submit Guess
-				</button>
-			</div>
 		</div>
 	);
 };
 
 export default GamePage;
+

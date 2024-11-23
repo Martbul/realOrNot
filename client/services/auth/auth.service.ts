@@ -23,7 +23,7 @@ export const login = async (email: string, password: string, setUser: Function) 
 		//localStorage.setItem("accessToken", accessToken);
 		//  localStorage.setItem("refreshToken", refreshToken);
 		//localStorage.setItem("user", JSON.stringify(user));
-		localStorage.setItem("jwt", JSON.stringify(data.JWT)) 
+		localStorage.setItem("jwt", JSON.stringify(data.JWT))
 		localStorage.setItem("userEmail", JSON.stringify(data.email));
 		localStorage.setItem("userId", JSON.stringify(data.id));
 
@@ -55,14 +55,14 @@ export const signup = async (username: string, email: string, password: string, 
 		const data = await response.json();
 		console.log(data)
 
-		setUser(data.id); // Update user in auth context
- const userObject = { id: data.id, email: data.email };
-  localStorage.setItem("user", JSON.stringify(userObject));
+		setUser(() => ({ id: data.id }));
+		const userObject = { id: data.id, email: data.email };
+		localStorage.setItem("user", JSON.stringify(userObject));
 
 		// Optional: store tokens or user data locally
 		// localStorage.setItem("accessToken", data.accessToken);
 		//localStorage.setItem("refreshToken", data.refreshToken);
-		localStorage.setItem("jwt", JSON.stringify(data.JWT)) 
+		localStorage.setItem("jwt", JSON.stringify(data.JWT))
 		localStorage.setItem("userEmail", JSON.stringify(data.email));
 		localStorage.setItem("userId", JSON.stringify(data.id));
 

@@ -59,14 +59,17 @@ export default function Home() {
 
       {/* Main Section */}
       <main className="flex-grow flex flex-col items-center justify-center p-8 gap-8">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
+        <div className="flex justify-center">
+          <Image
+            className="dark:invert"
+            src="/next.svg"
+            alt="Next.js logo"
+            width={180}
+            height={38}
+            priority
+          />
+
+        </div>
         <div className="flex flex-col sm:flex-row gap-4">
           <Dialog>
             <DialogTrigger asChild>
@@ -87,7 +90,6 @@ export default function Home() {
               )}
             </DialogContent>
           </Dialog>
-          <Button className="grad gradHover w-full sm:w-auto">Start a Game</Button>
         </div>
       </main>
 

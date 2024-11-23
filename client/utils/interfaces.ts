@@ -22,6 +22,6 @@ export interface Game {
   totalRounds: number,
   players: [],
   scores: {},
-  images: [],
+  roundData: any,
   sessionId: any,
 }

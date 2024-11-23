@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/martbul/realOrNot/internal/game"
 	"github.com/martbul/realOrNot/internal/game/session"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
@@ -125,9 +126,14 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 		scores[p.ID] = 0
 	}
 
+	roundData := game.Generate5Rounds()
+
 	// Simulate game rounds
 	for round := 1; round <= 2; round++ {
-		time.Sleep(10 * time.Second) // Simulate round duration
+		if round != 1 {
+
+			time.Sleep(10 * time.Second) // Simulate round duration
+		}
 		// Notify players of the next round
 		players := []*types.Player{}
 		for _, p := range sess.Players {
@@ -136,7 +142,7 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 				p.Conn.WriteJSON(map[string]interface{}{
 					"round":     round,
 					"message":   fmt.Sprintf("Round %d is starting now!", round),
-					"image_url": fmt.Sprintf("https://example.com/round_%d_image.jpg", round),
+					"roundData": roundData,
 					"players":   players,
 				})
 			}

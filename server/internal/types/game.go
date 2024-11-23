@@ -12,7 +12,7 @@ type Player struct {
 	// IsReady  bool            // Indicates if the player is ready for the next round
 }
 type Round struct {
-	RealImageURL string `json:"real_image_url"`
-	FakeImageURL string `json:"fake_image_url"`
-	Correct      string `json:"correct"`
+	Img1URL string `json:"img_1_url"`
+	Img2URL string `json:"img_2_url"`
+	Correct string `json:"correct"`
 }

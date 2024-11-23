@@ -32,7 +32,7 @@ export const joinGame = (userId: string, game: Game, setGame: any) => {
 					setGame((prevGame: Game) => ({
 						...prevGame,
 						currentRound: message.round,
-						//images.push(message.)
+						roundData: message.roundData
 					}));
 				} else if (message.status === "game_end") {
 					console.log("Game ended:", message);

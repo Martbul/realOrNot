@@ -1,8 +1,8 @@
 package matchmaker
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -88,6 +88,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 }
 
 func (m *Matchmaker) StartSession(sess *session.Session) {
+
 	time.Sleep(5 * time.Second)
 
 	m.Mu.Lock()
@@ -110,8 +111,6 @@ func (m *Matchmaker) StartSession(sess *session.Session) {
 
 func (m *Matchmaker) runGame(sess *session.Session) {
 
-	log := logger.GetLogger()
-	// Initialize player scores
 	scores := make(map[string]int)
 	for _, p := range sess.Players {
 		scores[p.ID] = 0
@@ -119,22 +118,15 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 
 	// Simulate game rounds
 	for round := 1; round <= 5; round++ {
-
 		roundData := game.Generate5Rounds()
-		if round != 1 {
 
-			time.Sleep(10 * time.Second) // Simulate round duration
-		}
 		// Notify players of the next round
-		players := []*types.Player{}
 		for _, p := range sess.Players {
-			players = append(players, p)
 			if p.Conn != nil {
 				p.Conn.WriteJSON(map[string]interface{}{
 					"round":     round,
 					"message":   fmt.Sprintf("Round %d is starting now!", round),
 					"roundData": roundData,
-					"players":   players,
 				})
 			}
 		}
@@ -144,6 +136,8 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 			PlayerID string
 			Guess    string
 		})
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second) // 15 seconds to guess
+		defer cancel()
 
 		// Read guesses asynchronously
 		for _, p := range sess.Players {
@@ -152,36 +146,51 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 					PlayerID string `json:"player_id"`
 					Guess    string `json:"guess"`
 				}
-
-				if err := player.Conn.ReadJSON(&guess); err == nil {
+				fmt.Println(guess)
+				err := player.Conn.ReadJSON(&guess)
+				if err == nil {
 					guesses <- struct {
 						PlayerID string
 						Guess    string
-					}{PlayerID: player.ID, Guess: guess.Guess}
+					}{
+						//	PlayerID: player.ID,
+						PlayerID: guess.PlayerID,
+						Guess:    guess.Guess,
+					}
+
+					fmt.Println("guess.guess", guess.Guess)
+					fmt.Println("guess.playerID", guess.PlayerID)
+					fmt.Println("playerId", player.ID)
+					fmt.Println("================================")
 				}
 			}(p)
 		}
 
-		// Process guesses
-		//	guessTime := time.After(15 * time.Second)
+		// Process guesses with a timeout
 		receivedGuesses := 0
-		for receivedGuesses < len(sess.Players) {
+		for {
 			select {
 			case guess := <-guesses:
 				if guess.Guess == roundData.Correct {
 					scores[guess.PlayerID]++
 				}
 				receivedGuesses++
-				//		case <-guessTime:
-				//			log.Info("Time ended, proceeding to the next.")
-				//			break
+				if receivedGuesses == len(sess.Players) {
+					cancel() // Stop waiting if all players have guessed
+				}
+			case <-ctx.Done():
+				// Timeout reached, proceed to the next round
+				break
+			}
+
+			if receivedGuesses == len(sess.Players) || ctx.Err() != nil {
+				// Exit the loop if all guesses are received or timeout occurs
+				break
 			}
 		}
 	}
 
-	//BUG:  The code got the the 5 round but did not envoked the endSession func
-	//BUG: This error is not consistent!!! /possible race condittion!/
-	log.Debug("Run game was executed!")
+	// End the session and send scores
 	m.endSession(sess, scores)
 }
 
@@ -209,7 +218,6 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
 	log.Debug("winner determined")
 	for _, p := range sess.Players {
 
-		log.Debug("Sending end game stats in ws")
 		if p.Conn != nil {
 			p.Conn.WriteJSON(map[string]interface{}{
 				"status":  "game_end",

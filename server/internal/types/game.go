@@ -11,8 +11,9 @@ type Player struct {
 	Score    int             // Player's score, initialized to 0
 	// IsReady  bool            // Indicates if the player is ready for the next round
 }
+
 type Round struct {
-	Img1URL string `json:"img_1_url"`
-	Img2URL string `json:"img_2_url"`
-	Correct string `json:"correct"`
+	Img1URL string `db:"img_1_url" json:"img_1_url"`
+	Img2URL string `db:"img_2_url" json:"img_2_url"`
+	Correct string `db:"correct" json:"correct"`
 }

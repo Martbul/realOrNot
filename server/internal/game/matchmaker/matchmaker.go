@@ -6,7 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/martbul/realOrNot/internal/game"
+	"github.com/jmoiron/sqlx"
+	"github.com/martbul/realOrNot/internal/db"
 	"github.com/martbul/realOrNot/internal/game/session"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
@@ -29,7 +30,7 @@ func NewMatchmaker(minPlayers int) *Matchmaker {
 	}
 }
 
-func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error) {
+func (m *Matchmaker) QueuePlayer(player *types.Player, dbConn *sqlx.DB) (*session.Session, error) {
 	log := logger.GetLogger()
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
@@ -78,7 +79,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 			}(p, newSession)
 		}
 
-		go m.StartSession(newSession)
+		go m.StartSession(newSession, dbConn)
 
 		return newSession, nil
 	}
@@ -87,7 +88,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player) (*session.Session, error)
 	return nil, nil
 }
 
-func (m *Matchmaker) StartSession(sess *session.Session) {
+func (m *Matchmaker) StartSession(sess *session.Session, db *sqlx.DB) {
 
 	time.Sleep(5 * time.Second)
 
@@ -106,18 +107,23 @@ func (m *Matchmaker) StartSession(sess *session.Session) {
 		}
 	}
 
-	go m.runGame(sess)
+	go m.runGame(sess, db)
 }
 
-func (m *Matchmaker) runGame(sess *session.Session) {
+func (m *Matchmaker) runGame(sess *session.Session, dbConn *sqlx.DB) {
 
 	scores := make(map[string]int)
 	for _, p := range sess.Players {
 		scores[p.ID] = 0
 	}
 
+	//TODO: Improve error handling
+	gameRounds, err := db.GetRandomRounds(dbConn)
+	if err != nil {
+		fmt.Println("get rounds error")
+	}
 	for round := 1; round <= 5; round++ {
-		roundData := game.Generate5Rounds()
+		roundData := gameRounds[round-1]
 
 		for _, p := range sess.Players {
 			if p.Conn != nil {
@@ -192,7 +198,6 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
 
 	delete(m.Sessions, sess.ID) // Remove session from in-memory storage
 	log.Debug("Ending session")
-	// Determine the winner(s)
 	var highestScore int
 	var winners []string
 	for playerID, score := range scores {

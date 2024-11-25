@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/game/matchmaker"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
@@ -18,7 +19,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
+func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
 
@@ -78,7 +79,7 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker) http.HandlerFunc {
 		}()
 
 		// Add player to matchmaking queue
-		newSession, err := mm.QueuePlayer(player)
+		newSession, err := mm.QueuePlayer(player, dbConn)
 		if err != nil {
 			log.Error("Error adding player to queue:", err)
 			conn.WriteJSON(map[string]string{"error": "Internal server error"})

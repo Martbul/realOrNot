@@ -37,7 +37,11 @@ export const joinGame = (userId: string, game: Game, setGame: any) => {
 					}));
 				} else if (message.status === "game_end") {
 					console.log("Game ended:", message);
-					alert(`Game over! Winner(s): ${message.winner.join(", ")}`);
+					setGame((prevGame: Game) => ({
+						...prevGame,
+						winners: message.winners
+
+					}));
 					socket.close();
 				}
 			} catch (error) {

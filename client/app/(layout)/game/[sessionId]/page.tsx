@@ -1,4 +1,8 @@
 
+
+
+
+
 'use client';
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "@/contexts/gameContext";
@@ -9,7 +13,7 @@ const GamePage: React.FC = ({ params }) => {
 	const [guessTimer, setGuessTimer] = useState<number>(10);
 	const [showTimer, setShowTimer] = useState<boolean>(true); // Controls overlay visibility
 	const [selectedImage, setSelectedImage] = useState<string | null>(null); // Track selected image
-
+	//const [winners, setWinners] = useState<string[]>([]); // State to track winners
 	const { game } = useGameContext();
 	const { user } = useAuthContext();
 
@@ -70,6 +74,19 @@ const GamePage: React.FC = ({ params }) => {
 					</div>
 				</div>
 			)}
+
+
+
+			{game.winners && game.winners.length > 0 && (
+				<div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+					{game.winners.map((w, index) => (
+						<div key={index} className="text-center">
+							<p className="text-lg text-gray-300 mt-2">{w}</p>
+						</div>
+					))}
+				</div>
+			)}
+
 
 			{/* Header */}
 			<header className="text-center mb-6">

@@ -116,11 +116,9 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 		scores[p.ID] = 0
 	}
 
-	// Simulate game rounds
 	for round := 1; round <= 5; round++ {
 		roundData := game.Generate5Rounds()
 
-		// Notify players of the next round
 		for _, p := range sess.Players {
 			if p.Conn != nil {
 				p.Conn.WriteJSON(map[string]interface{}{
@@ -131,7 +129,6 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 			}
 		}
 
-		// Wait for player guesses
 		guesses := make(chan struct {
 			PlayerID string
 			Guess    string
@@ -146,22 +143,15 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 					PlayerID string `json:"player_id"`
 					Guess    string `json:"guess"`
 				}
-				fmt.Println(guess)
 				err := player.Conn.ReadJSON(&guess)
 				if err == nil {
 					guesses <- struct {
 						PlayerID string
 						Guess    string
 					}{
-						//	PlayerID: player.ID,
 						PlayerID: guess.PlayerID,
 						Guess:    guess.Guess,
 					}
-
-					fmt.Println("guess.guess", guess.Guess)
-					fmt.Println("guess.playerID", guess.PlayerID)
-					fmt.Println("playerId", player.ID)
-					fmt.Println("================================")
 				}
 			}(p)
 		}
@@ -190,7 +180,6 @@ func (m *Matchmaker) runGame(sess *session.Session) {
 		}
 	}
 
-	// End the session and send scores
 	m.endSession(sess, scores)
 }
 
@@ -223,7 +212,7 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
 				"status":  "game_end",
 				"message": "The game has ended. Thanks for playing!",
 				"scores":  scores,
-				"winner":  winners,
+				"winners": winners,
 			})
 		}
 	}

@@ -186,18 +186,14 @@ func (m *Matchmaker) runGame(sess *session.Session, dbConn *sqlx.DB) {
 		}
 	}
 
-	m.endSession(sess, scores)
+	m.endSession(sess, scores, dbConn)
 }
 
-func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
-
-	log := logger.GetLogger()
+func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int, dbConn *sqlx.DB) {
 	m.Mu.Lock()
-
 	defer m.Mu.Unlock()
 
 	delete(m.Sessions, sess.ID) // Remove session from in-memory storage
-	log.Debug("Ending session")
 	var highestScore int
 	var winners []string
 	for playerID, score := range scores {
@@ -207,9 +203,14 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int) {
 		} else if score == highestScore {
 			winners = append(winners, playerID)
 		}
+
 	}
 
-	log.Debug("winner determined")
+	for _, w := range winners {
+		fmt.Println(w)
+		db.AddPlayerWin(dbConn, w)
+	}
+
 	for _, p := range sess.Players {
 
 		if p.Conn != nil {

@@ -1,10 +1,10 @@
-
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { joinGame } from "@/services/game/game.service";
+import { getLeaderboard } from "@/services/util/util.services";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/contexts/authContext";
 import { useGameContext } from "@/contexts/gameContext";
 import Navigation from "@/components/navigation/Navigation";
-import { useEffect, useState } from "react";
 
 const images = [
   "https://imgs.search.brave.com/uYNBdHBfyt8SLNwJ_DZrPbmZFZbjVdSYzeQuptnC9bQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/aW5lbWUtYWkuYi1j/ZG4ubmV0L3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIzLzEyL2Iz/NDMxYTg3MzY0YzQy/YjNiLmpwZw",
@@ -48,6 +48,7 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
 
+  const { data, error, isLoading, isError } = useQuery(['leaderboard'], getLeaderboard);
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -69,7 +70,6 @@ export default function Home() {
     },
   });
 
-  // Submit handler
   const handleJoinGame = () => {
     setIsWaiting(true); // Show the dialog
     mutate();
@@ -97,9 +97,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Action Cards */}
         <div className="flex flex-col sm:flex-row gap-8 items-center">
-          {/* Join Game Card */}
           <Card className="w-80 shadow-md">
             <CardHeader>
               <CardTitle className="text-2xl">Join a Game</CardTitle>
@@ -120,7 +118,6 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Learn to Play Card */}
           <Card className="w-80 shadow-md">
             <CardHeader>
               <CardTitle className="text-2xl">Learn How to Play</CardTitle>
@@ -129,7 +126,7 @@ export default function Home() {
               <p className="text-center text-gray-400">
                 New to the game? Learn how to play and become a pro!
               </p>
-              <Link href="/how-to-play">
+              <Link href="/howToPlay">
                 <Button className="w-full grad gradHover">Learn More</Button>
               </Link>
             </CardContent>
@@ -138,7 +135,6 @@ export default function Home() {
 
 
         <div className="relative w-full max-w-4xl mx-auto overflow-hidden rounded-lg shadow-lg">
-          {/* Carousel Images */}
           <div
             className="flex transition-transform duration-700 ease-in-out"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -182,7 +178,7 @@ export default function Home() {
 
           {/* Top 3 Players */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            {leaderboard.slice(0, 3).map((player, index) => (
+            {data.slice(0, 3).map((player, index) => (
               <div
                 key={player.id}
                 className="bg-gradient-to-b from-yellow-500 to-yellow-300 p-6 rounded-lg shadow-md text-center text-black"
@@ -199,7 +195,7 @@ export default function Home() {
           <div className="bg-gray-800 rounded-lg p-4 shadow-md">
             <h3 className="text-2xl font-bold mb-4">Other Players</h3>
             <ul className="divide-y divide-gray-700">
-              {leaderboard.slice(3).map((player) => (
+              {data.slice(3).map((player) => (
                 <li
                   key={player.id}
                   className="py-2 flex justify-between items-center"

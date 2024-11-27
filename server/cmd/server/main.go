@@ -45,6 +45,7 @@ func main() {
 	api := surveMux.PathPrefix("").Subrouter()
 	user.RegisterUserRoutes(api, dbConn)
 	game.RegisterGameRoutes(api, mm, dbConn)
+	stats.RegisterStatsRoutes(api, dbConn)
 
 	cors := gohandlers.CORS(
 		gohandlers.AllowedOrigins([]string{"*"}),

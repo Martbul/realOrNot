@@ -4,6 +4,9 @@ import "./globals.css";
 import { AuthContextWrapper } from "@/contexts/authContext";
 import { GameContextWrapper } from "@/contexts/gameContext";
 import Provider from "@/utils/Provider";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -28,14 +31,17 @@ export default function RootLayout({
   return (
     <AuthContextWrapper>
       <GameContextWrapper>
-        <html lang="en">
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            <Provider>{children}</Provider>
-          </body>
-        </html>
 
+        <QueryClientProvider client={queryClient}>
+          <html lang="en">
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+            >
+              <Provider>{children}</Provider>
+            </body>
+          </html>
+
+        </QueryClientProvider>
 
       </GameContextWrapper>
     </AuthContextWrapper>

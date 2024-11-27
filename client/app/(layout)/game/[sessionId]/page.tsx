@@ -1,30 +1,28 @@
 
-
-
-
-
-'use client';
+"use client";
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "@/contexts/gameContext";
 import { useAuthContext } from "@/contexts/authContext";
+import { useRouter } from "next/navigation";
+import Confetti from "react-confetti";
 
-const GamePage: React.FC = ({ params }) => {
+const GamePage: React.FC = () => {
 	const [startGameTimer, setStartGameTimer] = useState<number>(5);
 	const [guessTimer, setGuessTimer] = useState<number>(10);
-	const [showTimer, setShowTimer] = useState<boolean>(true); // Controls overlay visibility
-	const [selectedImage, setSelectedImage] = useState<string | null>(null); // Track selected image
-	//const [winners, setWinners] = useState<string[]>([]); // State to track winners
+	const [showTimer, setShowTimer] = useState<boolean>(true);
+	const [selectedImage, setSelectedImage] = useState<string | null>(null);
+	const [showWinners, setShowWinners] = useState<boolean>(false);
+
 	const { game } = useGameContext();
 	const { user } = useAuthContext();
+	const router = useRouter();
 
 	const sendGuess = (guess: string) => {
-		if (!game.ws || selectedImage) return; // Prevent further guesses after selection
-
-		const payload = { "player_id": user, guess };
+		if (!game.ws || selectedImage) return;
+		const payload = { player_id: user, guess };
 		game.ws.send(JSON.stringify(payload));
 		console.log("Sent guess:", payload);
-
-		setSelectedImage(guess); // Set the selected image to prevent further clicks
+		setSelectedImage(guess);
 	};
 
 	// Countdown for the start timer
@@ -33,7 +31,7 @@ const GamePage: React.FC = ({ params }) => {
 			const timeout = setTimeout(() => setStartGameTimer((prev) => prev - 1), 1000);
 			return () => clearTimeout(timeout);
 		} else {
-			setShowTimer(false); // Hide start timer after countdown finishes
+			setShowTimer(false);
 		}
 	}, [startGameTimer]);
 
@@ -46,14 +44,21 @@ const GamePage: React.FC = ({ params }) => {
 	}, [showTimer, guessTimer]);
 
 	useEffect(() => {
-		console.log(game);
-		console.log(user);
-		// Reset the selected image when a new round starts
 		if (game && game.roundData) {
-			setSelectedImage(null); // Clear the selection for a new round
-			setGuessTimer(10); // Reset the guess timer for the next round
+			setSelectedImage(null);
+			setGuessTimer(10);
 		}
 	}, [game]);
+
+	// Show winners when game ends
+	useEffect(() => {
+		if (game.winners && game.winners.length > 0) {
+			setShowWinners(true);
+			setTimeout(() => {
+				router.push("/"); // Redirect to home page after 5 seconds
+			}, 5000); // Adjust the timeout duration as needed
+		}
+	}, [game.winners, router]);
 
 	if (!game) {
 		return (
@@ -65,6 +70,24 @@ const GamePage: React.FC = ({ params }) => {
 
 	return (
 		<div className="relative min-h-screen bg-gray-50 p-6">
+			{/* Confetti Effect */}
+			{showWinners && <Confetti width={window.innerWidth} height={window.innerHeight} />}
+
+			{/* Winner Announcement */}
+			{showWinners && (
+				<div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+					<h2 className="text-4xl font-bold text-white mb-4">🎉 Congratulations! 🎉</h2>
+					{game.winners.map((winner, index) => (
+						<p key={index} className="text-2xl font-medium text-yellow-300">
+							{winner}
+						</p>
+					))}
+					<p className="text-lg text-gray-300 mt-2">
+						Redirecting to the home page in 5 seconds...
+					</p>
+				</div>
+			)}
+
 			{/* Timer Overlay */}
 			{showTimer && (
 				<div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
@@ -74,19 +97,6 @@ const GamePage: React.FC = ({ params }) => {
 					</div>
 				</div>
 			)}
-
-
-
-			{game.winners && game.winners.length > 0 && (
-				<div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-					{game.winners.map((w, index) => (
-						<div key={index} className="text-center">
-							<p className="text-lg text-gray-300 mt-2">{w}</p>
-						</div>
-					))}
-				</div>
-			)}
-
 
 			{/* Header */}
 			<header className="text-center mb-6">
@@ -134,10 +144,3 @@ const GamePage: React.FC = ({ params }) => {
 };
 
 export default GamePage;
-
-
-
-
-
-
-

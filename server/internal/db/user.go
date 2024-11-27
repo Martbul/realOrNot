@@ -33,3 +33,19 @@ func GetUserByEmail(db *sqlx.DB, email string) (*types.User, error) {
 	}
 	return &user, nil
 }
+
+func GetUserById(db *sqlx.DB, id string) (*types.User, error) {
+	if db == nil {
+		return nil, fmt.Errorf("db is nil in GetUserById")
+	}
+	var user types.User
+	query := `SELECT id, username, email, password_hash FROM users WHERE id = $1`
+	err := db.Get(&user, query, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No user found with the given id
+		}
+		return nil, fmt.Errorf("failed to get user by id: %v", err) // Other database error
+	}
+	return &user, nil
+}

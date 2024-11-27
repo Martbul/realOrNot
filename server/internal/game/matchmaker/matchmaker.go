@@ -199,9 +199,22 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int, db
 	for playerID, score := range scores {
 		if score > highestScore {
 			highestScore = score
-			winners = []string{playerID}
+			playerW, err := db.GetUserById(dbConn, playerID)
+			//TODO: Improve error handling
+			if err != nil {
+				fmt.Println("Unable to get user")
+			}
+			winners = []string{playerW.UserName}
+			//winners = []string{playerID}
 		} else if score == highestScore {
-			winners = append(winners, playerID)
+			playerW, err := db.GetUserById(dbConn, playerID)
+			//TODO: Improve error handling
+			if err != nil {
+				fmt.Println("Unable to get user")
+			}
+
+			winners = append(winners, playerW.UserName)
+			//winners = append(winners, playerID)
 		}
 
 	}

@@ -1,0 +1,35 @@
+
+# Ignore build artifacts
+realOrNot
+
+# Ignore vendor directory if Go modules are used
+vendor/
+
+# Ignore Go test result files
+*.test
+
+# Ignore IDE/editor config files
+.vscode/
+.idea/
+*.iml
+
+# Ignore log files
+*.log
+
+# Ignore temporary files and cache
+*.out
+*.tmp
+*.swp
+*.DS_Store
+
+# Ignore git metadata
+.git
+.gitignore
+
+# Ignore Go module cache (if accidentally included)
+go.sum
+go.mod~
+
+# Ignore Docker-related files (to avoid recursion or unnecessary layers)
+Dockerfile
+.dockerignore

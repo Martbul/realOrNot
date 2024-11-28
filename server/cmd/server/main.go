@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/martbul/realOrNot/internal/api/v1/game"
+	"github.com/martbul/realOrNot/internal/api/v1/stats"
 	"github.com/martbul/realOrNot/internal/api/v1/user"
 	"github.com/martbul/realOrNot/internal/db"
 	"github.com/martbul/realOrNot/internal/game/matchmaker"

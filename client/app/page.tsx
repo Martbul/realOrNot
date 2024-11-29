@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { joinGame } from "@/services/game/game.service";
-import { getLeaderboard } from "@/services/util/util.services";
+import { getLeaderboard } from "@/services/stats/stats.service";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/contexts/authContext";
 import { useGameContext } from "@/contexts/gameContext";
@@ -48,7 +48,7 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
 
-  const { data, error, isLoading, isError } = useQuery(['leaderboard'], getLeaderboard);
+  const { data } = useQuery(['leaderboard'], getLeaderboard);
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);

@@ -40,6 +40,7 @@ const leaderboard = [
   // Add more players up to 20
 ];
 
+
 export default function Home() {
   const { user } = useAuthContext();
   const { game, setGame } = useGameContext();
@@ -47,17 +48,26 @@ export default function Home() {
   const [isWaiting, setIsWaiting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Fetch leaderboard
+  const {
+    data: leaderboardData,
+    isLoading: isLeaderboardLoading,
+    isError: isLeaderboardError,
+    error: leaderboardError,
+  } = useQuery({
+    queryKey: ["leaderboard"],
+    queryFn: getLeaderboard,
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+  });
 
-  const { data } = useQuery(['leaderboard'], getLeaderboard);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 3000); // Change slide every 3 seconds
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, []);
-
-  // Mutation for joining a game
-  const { mutate, isLoading, isError, error } = useMutation({
+  // Join game mutation
+  const {
+    mutate: joinGameMutation,
+    isLoading: isJoinGameLoading,
+    isError: isJoinGameError,
+    error: joinGameError,
+  } = useMutation({
     mutationFn: async () => {
       if (!user) {
         throw new Error("User is not authenticated.");
@@ -65,15 +75,22 @@ export default function Home() {
       return await joinGame(user.id, game, setGame);
     },
     onSuccess: (sessionID) => {
-      setIsWaiting(false); // Close the dialog
+      setIsWaiting(false);
       router.replace(`/game/${sessionID}`);
     },
   });
 
   const handleJoinGame = () => {
-    setIsWaiting(true); // Show the dialog
-    mutate();
+    setIsWaiting(true);
+    joinGameMutation();
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
@@ -106,13 +123,13 @@ export default function Home() {
               <Button
                 className="w-full grad gradHover"
                 onClick={handleJoinGame}
-                disabled={isLoading}
+                disabled={isJoinGameLoading}
               >
-                {isLoading ? "Joining..." : "Join Now"}
+                {isJoinGameLoading ? "Joining..." : "Join Now"}
               </Button>
-              {isError && (
+              {isJoinGameError && (
                 <p className="text-red-500 text-center">
-                  Error: {error.message}
+                  Error: {joinGameError.message}
                 </p>
               )}
             </CardContent>
@@ -133,40 +150,6 @@ export default function Home() {
           </Card>
         </div>
 
-
-        <div className="relative w-full max-w-4xl mx-auto overflow-hidden rounded-lg shadow-lg">
-          <div
-            className="flex transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-          >
-            {images.map((src, index) => (
-              <div key={index} className="min-w-full flex-shrink-0">
-                <Image
-                  src={src}
-                  alt={`Slide ${index + 1}`}
-                  width={1920}
-                  height={1080}
-                  className="w-full h-64 object-cover"
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Dots Navigation */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-3 h-3 rounded-full ${index === currentIndex
-                  ? "bg-white"
-                  : "bg-gray-400 hover:bg-white"
-                  }`}
-              />
-            ))}
-          </div>
-        </div>
-
         {/* Leaderboard Section */}
         <section className="w-full">
           <div className="text-center mb-12">
@@ -176,36 +159,44 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Top 3 Players */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            {data.slice(0, 3).map((player, index) => (
-              <div
-                key={player.id}
-                className="bg-gradient-to-b from-yellow-500 to-yellow-300 p-6 rounded-lg shadow-md text-center text-black"
-              >
-                <h2 className="text-3xl font-bold">
-                  #{index + 1} {player.name}
-                </h2>
-                <p className="text-xl font-medium mt-2">{player.wins} Wins</p>
+          {isLeaderboardLoading ? (
+            <p className="text-center text-gray-400">Loading leaderboard...</p>
+          ) : isLeaderboardError ? (
+            <p className="text-center text-red-500">
+              Error loading leaderboard: {leaderboardError.message}
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                {leaderboardData && leaderboardData.slice(0, 3).map((player, index) => (
+                  <div
+                    key={player.id}
+                    className="bg-gradient-to-b from-yellow-500 to-yellow-300 p-6 rounded-lg shadow-md text-center text-black"
+                  >
+                    <h2 className="text-3xl font-bold">
+                      #{index + 1} {player.username}
+                    </h2>
+                    <p className="text-xl font-medium mt-2">{player.wins} Wins</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Remaining Players */}
-          <div className="bg-gray-800 rounded-lg p-4 shadow-md">
-            <h3 className="text-2xl font-bold mb-4">Other Players</h3>
-            <ul className="divide-y divide-gray-700">
-              {data.slice(3).map((player) => (
-                <li
-                  key={player.id}
-                  className="py-2 flex justify-between items-center"
-                >
-                  <span className="text-lg">{player.name}</span>
-                  <span className="text-sm text-gray-400">{player.wins} Wins</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+              <div className="bg-gray-800 rounded-lg p-4 shadow-md">
+                <h3 className="text-2xl font-bold mb-4">Other Players</h3>
+                <ul className="divide-y divide-gray-700">
+                  {leaderboardData && leaderboardData.slice(3).map((player) => (
+                    <li
+                      key={player.id}
+                      className="py-2 flex justify-between items-center"
+                    >
+                      <span className="text-lg">{player.username}</span>
+                      <span className="text-sm text-gray-400">{player.wins} Wins</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </section>
       </main>
 
@@ -220,22 +211,6 @@ export default function Home() {
           </DialogHeader>
         </DialogContent>
       </Dialog>
-
-      {/* Footer */}
-      <footer className="p-4 bg-gray-900 text-white text-center">
-        <p>
-          Built with ❤️ using Next.js and ShadCN UI. Check out{" "}
-          <a
-            className="underline"
-            href="https://nextjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Next.js Docs
-          </a>
-          .
-        </p>
-      </footer>
     </div>
   );
 }

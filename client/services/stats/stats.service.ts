@@ -1,8 +1,9 @@
 const url = "http://localhost:8080"
-// authService.js
 export const getLeaderboard = async () => {
+
+	console.log("getting leaderboard")
 	try {
-		const response = await fetch(url + "/stats/leaderBoard", {
+		const response = await fetch(url + "/stats/leaderboard", {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",

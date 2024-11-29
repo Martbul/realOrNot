@@ -8,7 +8,6 @@ import (
 	"github.com/martbul/realOrNot/internal/db"
 )
 
-// []map[string]interface{
 type LeaderboardUserData struct {
 	ID       int
 	UserName string
@@ -16,8 +15,8 @@ type LeaderboardUserData struct {
 }
 
 func WinsLeaderboard(dbConn *sqlx.DB) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		//TODO: Improve error handling
 		lbPlayerStats, _ := db.GetWinsLeaderboard(dbConn)
 

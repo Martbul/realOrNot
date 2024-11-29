@@ -6,12 +6,13 @@ import { useAuthContext } from "@/contexts/authContext";
 
 const Navigation = () => {
 	const { user } = useAuthContext();
+	console.log(user.id)
 
 	return (
 		<header className="flex justify-between items-center p-4 bg-gray-800 text-white">
 			<h1 className="text-xl font-bold">Game App</h1>
 			<div className="flex gap-4">
-				{user?.id === "-1" ? (
+				{user.id == undefined || user?.id === "-1" ? (
 					<>
 						<Link href="/login">
 							<Button className="grad gradHover">Login</Button>

@@ -25,7 +25,6 @@ const GamePage: React.FC = () => {
 		setSelectedImage(guess);
 	};
 
-	// Countdown for the start timer
 	useEffect(() => {
 		if (startGameTimer > 0) {
 			const timeout = setTimeout(() => setStartGameTimer((prev) => prev - 1), 1000);
@@ -35,7 +34,6 @@ const GamePage: React.FC = () => {
 		}
 	}, [startGameTimer]);
 
-	// Countdown for the guess timer
 	useEffect(() => {
 		if (!showTimer && guessTimer > 0) {
 			const timeout = setTimeout(() => setGuessTimer((prev) => prev - 1), 1000);
@@ -50,7 +48,6 @@ const GamePage: React.FC = () => {
 		}
 	}, [game]);
 
-	// Show winners when game ends
 	useEffect(() => {
 		if (game.winners && game.winners.length > 0) {
 			setShowWinners(true);
@@ -70,10 +67,8 @@ const GamePage: React.FC = () => {
 
 	return (
 		<div className="relative min-h-screen bg-gray-50 p-6">
-			{/* Confetti Effect */}
 			{showWinners && <Confetti width={window.innerWidth} height={window.innerHeight} />}
 
-			{/* Winner Announcement */}
 			{showWinners && (
 				<div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-50">
 					<h2 className="text-4xl font-bold text-white mb-4">🎉 Congratulations! 🎉</h2>
@@ -88,7 +83,6 @@ const GamePage: React.FC = () => {
 				</div>
 			)}
 
-			{/* Timer Overlay */}
 			{showTimer && (
 				<div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
 					<div className="text-center">
@@ -98,15 +92,13 @@ const GamePage: React.FC = () => {
 				</div>
 			)}
 
-			{/* Header */}
-			<header className="text-center mb-6">
+			<div className="text-center mb-6">
 				<h1 className="text-3xl font-extrabold text-gray-800">
 					Round {game.currentRound} of {game.totalRounds}
 				</h1>
 				<p className="text-gray-600 mt-2">Make your best guess to win!</p>
-			</header>
+			</div>
 
-			{/* Guess Timer */}
 			<div className="text-center mb-4">
 				<p className="text-xl font-bold text-gray-800">
 					Time Remaining: <span className="text-red-600">{guessTimer}s</span>

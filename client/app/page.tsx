@@ -25,21 +25,6 @@ const images = [
   "https://imgs.search.brave.com/r8ryDuO4qZFvNYn13pWdcHwazEbSkv5dZXPYxrKQXx8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cGljbHVtZW4uY29t/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDI0/LzEwL3BpY2x1bWVu/LW1hcnF1ZWUtMDMu/d2VicA",
   "https://news.ubc.ca/wp-content/uploads/2023/08/AdobeStock_559145847.jpeg"
 ];
-// Mocked Leaderboard Data (replace with real data fetching logic)
-const leaderboard = [
-  { id: 1, name: "Alice", wins: 25 },
-  { id: 2, name: "Bob", wins: 20 },
-  { id: 3, name: "Charlie", wins: 18 },
-  { id: 4, name: "David", wins: 15 },
-  { id: 5, name: "Eve", wins: 14 },
-  { id: 6, name: "Frank", wins: 12 },
-  { id: 7, name: "Grace", wins: 11 },
-  { id: 8, name: "Heidi", wins: 10 },
-  { id: 9, name: "Ivan", wins: 9 },
-  { id: 10, name: "Judy", wins: 8 },
-  // Add more players up to 20
-];
-
 
 export default function Home() {
   const { user } = useAuthContext();
@@ -48,7 +33,6 @@ export default function Home() {
   const [isWaiting, setIsWaiting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Fetch leaderboard
   const {
     data: leaderboardData,
     isLoading: isLeaderboardLoading,
@@ -61,7 +45,6 @@ export default function Home() {
     retry: 3,
   });
 
-  // Join game mutation
   const {
     mutate: joinGameMutation,
     isLoading: isJoinGameLoading,
@@ -93,61 +76,99 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
+    <section className="flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
       <Navigation />
 
-      {/* Main Section */}
-      <main className="flex-grow flex flex-col items-center justify-center p-8 gap-12">
-        {/* Welcome Section */}
-        <div className="flex flex-col items-center gap-6 text-center">
-          <Image
-            className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={180}
-            height={38}
-            priority
-          />
-          <h1 className="text-4xl font-bold">Welcome to the REALorNOT Game!</h1>
-          <p className="text-lg text-gray-400">
-            Explore the world, test your knowledge, and compete with friends!
-          </p>
-        </div>
+      <main className="flex-grow flex flex-col items-center justify-around p-4 gap-10">
+        <div className="flex flex-col justify-center items-center h-screen">
+          <div className="flex flex-col items-center gap-6 text-center">
 
-        <div className="flex flex-col sm:flex-row gap-8 items-center">
-          <Card className="w-80 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-2xl">Join a Game</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              <Button
-                className="w-full grad gradHover"
-                onClick={handleJoinGame}
-                disabled={isJoinGameLoading}
-              >
-                {isJoinGameLoading ? "Joining..." : "Join Now"}
-              </Button>
-              {isJoinGameError && (
-                <p className="text-red-500 text-center">
-                  Error: {joinGameError.message}
+            {/*
+            <Image
+              className="dark:invert"
+              src="/next.svg"
+              alt="Next.js logo"
+              width={180}
+              height={38}
+              priority
+            />
+
+            */}
+            <h1 className="text-4xl font-bold">Welcome to the REALorNOT Game!</h1>
+            <p className="text-lg text-gray-400">
+              Explore the world, test your knowledge, and compete with friends!
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-8 items-center justify-center">
+            <Card className="w-80 shadow-md">
+              <CardHeader>
+                <CardTitle className="text-2xl">Join a Game</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center gap-4">
+                <Button
+                  className="w-full grad gradHover"
+                  onClick={handleJoinGame}
+                  disabled={isJoinGameLoading}
+                >
+                  {isJoinGameLoading ? "Joining..." : "Join Now"}
+                </Button>
+                {isJoinGameError && (
+                  <p className="text-red-500 text-center">
+                    Error: {joinGameError.message}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="w-80 shadow-md">
+              <CardHeader>
+                <CardTitle className="text-2xl">Learn How to Play</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center gap-4">
+                <p className="text-center text-gray-400">
+                  New to the game? Learn how to play and become a pro!
                 </p>
-              )}
-            </CardContent>
-          </Card>
+                <Link href="/howToPlay">
+                  <Button className="w-full grad gradHover">Learn More</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="w-80 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-2xl">Learn How to Play</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              <p className="text-center text-gray-400">
-                New to the game? Learn how to play and become a pro!
-              </p>
-              <Link href="/howToPlay">
-                <Button className="w-full grad gradHover">Learn More</Button>
-              </Link>
-            </CardContent>
-          </Card>
+          {/* Image carousel and dots navigation below the cards */}
+          <div className="relative w-full max-w-4xl mx-auto overflow-hidden rounded-lg shadow-lg mt-10">
+            <div
+              className="flex transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+            >
+              {images.map((src, index) => (
+                <div key={index} className="min-w-full flex-shrink-0">
+                  <Image
+                    src={src}
+                    alt={`Slide ${index + 1}`}
+                    width={1920}
+                    height={1080}
+                    className="w-full h-96 object-cover" // Increase the height here for bigger images
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Dots Navigation */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-3 h-3 rounded-full ${index === currentIndex
+                    ? "bg-white"
+                    : "bg-gray-400 hover:bg-white"
+                    }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Leaderboard Section */}
@@ -168,7 +189,7 @@ export default function Home() {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                {leaderboardData && leaderboardData.slice(0, 3).map((player, index) => (
+                {leaderboardData && leaderboardData.slice(0, 3).map((player: any, index: number) => (
                   <div
                     key={player.id}
                     className="bg-gradient-to-b from-yellow-500 to-yellow-300 p-6 rounded-lg shadow-md text-center text-black"
@@ -184,7 +205,7 @@ export default function Home() {
               <div className="bg-gray-800 rounded-lg p-4 shadow-md">
                 <h3 className="text-2xl font-bold mb-4">Other Players</h3>
                 <ul className="divide-y divide-gray-700">
-                  {leaderboardData && leaderboardData.slice(3).map((player) => (
+                  {leaderboardData && leaderboardData.slice(3).map((player: any) => (
                     <li
                       key={player.id}
                       className="py-2 flex justify-between items-center"
@@ -211,6 +232,6 @@ export default function Home() {
           </DialogHeader>
         </DialogContent>
       </Dialog>
-    </div>
+    </section>
   );
 }

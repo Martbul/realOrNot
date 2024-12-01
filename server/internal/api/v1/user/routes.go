@@ -11,6 +11,7 @@ func RegisterUserRoutes(r *mux.Router, db *sqlx.DB) {
 	userRouter := r.PathPrefix("/user").Subrouter()
 	userRouter.HandleFunc("/signup", SignupUser(db)).Methods(http.MethodPost)
 	userRouter.HandleFunc("/login", LoginUser(db)).Methods(http.MethodPost)
+	userRouter.HandleFunc("/refreshToken", RefreshTokenHandler()).Methods(http.MethodPost)
 	userRouter.HandleFunc("/{id}", GetUser(db)).Methods(http.MethodGet)
 	//userRouter.HandleFunc("/{id}", UpdateUser).Methods(http.MethodPut)
 	//userRouter.HandleFunc("/{id}", DeleteUser).Methods(http.MethodDelete)

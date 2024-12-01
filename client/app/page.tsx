@@ -33,6 +33,10 @@ export default function Home() {
   const [isWaiting, setIsWaiting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  console.log("User from context in Home:", user); // Debugging line
+  useEffect(() => {
+    console.log("User in Home after context update:", user);
+  }, [user]);
   const {
     data: leaderboardData,
     isLoading: isLeaderboardLoading,
@@ -52,7 +56,9 @@ export default function Home() {
     error: joinGameError,
   } = useMutation({
     mutationFn: async () => {
+      console.log(user)
       if (!user) {
+        //TODO: Push route to login
         throw new Error("User is not authenticated.");
       }
       return await joinGame(user.id, game, setGame);
@@ -138,6 +144,7 @@ export default function Home() {
 
           {/* Image carousel and dots navigation below the cards */}
           <div className="relative w-full max-w-4xl mx-auto overflow-hidden rounded-lg shadow-lg mt-10">
+            {/* Slides container */}
             <div
               className="flex transition-transform duration-700 ease-in-out"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -149,22 +156,23 @@ export default function Home() {
                     alt={`Slide ${index + 1}`}
                     width={1920}
                     height={1080}
-                    className="w-full h-96 object-cover" // Increase the height here for bigger images
+                    className="w-full h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 object-cover"
                   />
                 </div>
               ))}
             </div>
 
-            {/* Dots Navigation */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            {/* Navigation dots */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
               {images.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className={`w-3 h-3 rounded-full ${index === currentIndex
-                    ? "bg-white"
-                    : "bg-gray-400 hover:bg-white"
+                  className={`w-4 h-4 rounded-full border-2 ${index === currentIndex
+                    ? "bg-white border-white"
+                    : "bg-gray-400 border-transparent hover:bg-white hover:border-gray-300"
                     }`}
+                  aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>

@@ -27,3 +27,7 @@ export interface Game {
   ws: any;
   winners: string[]; // Updated to explicitly be an array of strings
 }
+
+export interface SvgProps extends React.SVGProps<SVGSVGElement> {
+  transformOrigin?: string;
+}

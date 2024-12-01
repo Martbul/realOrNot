@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,6 +33,7 @@ export default function Home() {
   const router = useRouter();
   const [isWaiting, setIsWaiting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isClient, setIsClient] = useState(false); // Flag to check if we're on the client side
 
   const {
     data: leaderboardData,
@@ -69,11 +71,16 @@ export default function Home() {
   };
 
   useEffect(() => {
+    // Set isClient to true when the component mounts to ensure client-side rendering
+    setIsClient(true);
+
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  if (!isClient) return null; // Prevent rendering on the server side
 
   return (
     <section className="flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
@@ -82,18 +89,6 @@ export default function Home() {
       <main className="flex-grow flex flex-col items-center justify-around p-4 gap-10">
         <div className="flex flex-col justify-center items-center h-screen">
           <div className="flex flex-col items-center gap-6 text-center">
-
-            {/*
-            <Image
-              className="dark:invert"
-              src="/next.svg"
-              alt="Next.js logo"
-              width={180}
-              height={38}
-              priority
-            />
-
-            */}
             <h1 className="text-4xl font-bold">Welcome to the REALorNOT Game!</h1>
             <p className="text-lg text-gray-400">
               Explore the world, test your knowledge, and compete with friends!
@@ -149,7 +144,7 @@ export default function Home() {
                     alt={`Slide ${index + 1}`}
                     width={1920}
                     height={1080}
-                    className="w-full h-96 object-cover" // Increase the height here for bigger images
+                    className="w-full h-96 object-cover"
                   />
                 </div>
               ))}
@@ -188,20 +183,23 @@ export default function Home() {
             </p>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                {leaderboardData && leaderboardData.slice(0, 3).map((player: any, index: number) => (
-                  <div
-                    key={player.id}
-                    className="bg-gradient-to-b from-yellow-500 to-yellow-300 p-6 rounded-lg shadow-md text-center text-black"
-                  >
-                    <h2 className="text-3xl font-bold">
-                      #{index + 1} {player.username}
-                    </h2>
-                    <p className="text-xl font-medium mt-2">{player.wins} Wins</p>
-                  </div>
-                ))}
-              </div>
-
+              {leaderboardData && leaderboardData.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                  {leaderboardData && leaderboardData.slice(0, 3).map((player: any, index: number) => (
+                    <div
+                      key={player.id}
+                      className="bg-gradient-to-b from-yellow-500 to-yellow-300 p-6 rounded-lg shadow-md text-center text-black"
+                    >
+                      <h2 className="text-3xl font-bold">
+                        #{index + 1} {player.username}
+                      </h2>
+                      <p className="text-xl font-medium mt-2">{player.wins} Wins</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-400">No leaderboard data available.</p>
+              )}
               <div className="bg-gray-800 rounded-lg p-4 shadow-md">
                 <h3 className="text-2xl font-bold mb-4">Other Players</h3>
                 <ul className="divide-y divide-gray-700">

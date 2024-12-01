@@ -72,3 +72,11 @@ export const signup = async (username: string, email: string, password: string, 
 		throw error;
 	}
 };
+
+export const logout = (setUser: Function) => {
+	setUser(() => ({ id: "-1" }));
+	localStorage.removeItem("user")
+	localStorage.removeItem("jwt")
+	localStorage.removeItem("userEmail")
+	localStorage.removeItem("userId")
+}

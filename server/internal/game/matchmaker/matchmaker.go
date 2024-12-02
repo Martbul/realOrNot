@@ -84,7 +84,6 @@ func (m *Matchmaker) QueuePlayer(player *types.Player, dbConn *sqlx.DB) (*sessio
 		return newSession, nil
 	}
 
-	// Return nil if not enough players, but the player is still in the queue
 	return nil, nil
 }
 
@@ -111,11 +110,18 @@ func (m *Matchmaker) StartSession(sess *session.Session, db *sqlx.DB) {
 }
 
 func (m *Matchmaker) runGame(sess *session.Session, dbConn *sqlx.DB) {
+	fmt.Println("sessPlayers", sess.Players)
 
 	scores := make(map[string]int)
 	for _, p := range sess.Players {
+		if p.ID == "" {
+			fmt.Println("Player with empty ID found:", p)
+			continue
+		}
+		fmt.Println("plaeyerId", p.ID)
 		scores[p.ID] = 0
 	}
+	fmt.Println("initial scores:", scores)
 
 	//TODO: Improve error handling
 	gameRounds, err := db.GetRandomRounds(dbConn)
@@ -196,7 +202,9 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int, db
 	delete(m.Sessions, sess.ID) // Remove session from in-memory storage
 	var highestScore int
 	var winners []string
+	fmt.Println("scores -> ", scores)
 	for playerID, score := range scores {
+		fmt.Println("plaerId -> ", playerID)
 		if score > highestScore {
 			highestScore = score
 			playerW, err := db.GetUserById(dbConn, playerID)

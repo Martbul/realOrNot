@@ -111,9 +111,9 @@ const Navigation: React.FC = () => {
 				{/* Logo */}
 				<div className="flex items-center space-x-3">
 					<a href="/" className="flex items-center">
-						<Image alt="GeoGuessr" src="/_next/static/media/logo.6958f2fb.svg" width={208} height={40} />
-						<h1 className="text-xl font-bold ml-2 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-							GeoGuessr
+						{/* <Image alt="GeoGuessr" src="/_next/static/media/logo.6958f2fb.svg" width={208} height={40} /> */}
+						<h1 className="text-xl font-bold ml-2 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
+							REALorNOT
 						</h1>
 					</a>
 				</div>

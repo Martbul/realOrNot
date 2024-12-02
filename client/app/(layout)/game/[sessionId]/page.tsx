@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "@/contexts/gameContext";
@@ -53,7 +52,15 @@ const GamePage: React.FC = () => {
 			setShowWinners(true);
 			setTimeout(() => {
 				router.push("/"); // Redirect to home page after 5 seconds
+
 			}, 5000); // Adjust the timeout duration as needed
+
+			//	setTimeout(() => {
+
+			//		setShowWinners(true);
+			//	}, 6000); // Adjust the timeout duration as needed
+
+
 		}
 	}, [game.winners, router]);
 

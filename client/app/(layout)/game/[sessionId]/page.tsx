@@ -4,8 +4,12 @@ import { useGameContext } from "@/contexts/gameContext";
 import { useAuthContext } from "@/contexts/authContext";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
-
-const GamePage: React.FC = () => {
+interface GamePageProps {
+	params: {
+		sessionId: string;
+	};
+}
+const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	const [startGameTimer, setStartGameTimer] = useState<number>(5);
 	const [guessTimer, setGuessTimer] = useState<number>(10);
 	const [showTimer, setShowTimer] = useState<boolean>(true);
@@ -16,6 +20,7 @@ const GamePage: React.FC = () => {
 	const { user } = useAuthContext();
 	const router = useRouter();
 
+
 	const sendGuess = (guess: string) => {
 		if (!game.ws || selectedImage) return;
 		const payload = { player_id: user, guess };
@@ -23,6 +28,22 @@ const GamePage: React.FC = () => {
 		console.log("Sent guess:", payload);
 		setSelectedImage(guess);
 	};
+
+
+	useEffect(() => {
+		// Reset all session-specific states
+		setStartGameTimer(5);
+		setGuessTimer(10);
+		setShowTimer(true);
+		setShowWinners(false);
+		setSelectedImage(null);
+
+		// Clear game-specific data to ensure no old state persists
+		if (game) {
+			game.winners = []; // Reset winners list
+		}
+	}, [params.sessionId]);
+
 
 	useEffect(() => {
 		if (startGameTimer > 0) {

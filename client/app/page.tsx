@@ -27,6 +27,9 @@ const images = [
   "https://news.ubc.ca/wp-content/uploads/2023/08/AdobeStock_559145847.jpeg"
 ];
 
+
+
+
 export default function Home() {
   const { user } = useAuthContext();
   const { game, setGame } = useGameContext();
@@ -81,6 +84,7 @@ export default function Home() {
   }, []);
 
   if (!isClient) return null; // Prevent rendering on the server side
+  //
 
   return (
     <section className="flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
@@ -164,6 +168,9 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+
+
         </div>
 
         {/* Leaderboard Section */}

@@ -46,6 +46,7 @@ func AddPlayerWin(db *sqlx.DB, userID string) error {
 	if db == nil {
 		return fmt.Errorf("db is nil in AddWin")
 	}
+	fmt.Println("starting to add win to player:", userID)
 
 	tx, err := db.Beginx()
 	if err != nil {

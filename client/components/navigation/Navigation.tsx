@@ -1,3 +1,4 @@
+
 import { useAuthContext } from '@/contexts/authContext';
 import { logout } from '@/services/auth/auth.service';
 import React, { useState, useRef } from 'react';
@@ -26,8 +27,21 @@ const useClickOutside = (ref: React.RefObject<HTMLElement>, onClickOutside: () =
 	}, [ref, onClickOutside]);
 };
 
-const MenuDropdownItem = ({ href, imgSrc, title, description }: { href: string; imgSrc: string; title: string; description: string }) => (
-	<a className="flex items-center space-x-3 p-3 hover:bg-gray-700 transition duration-200 rounded-md" href={href}>
+const MenuDropdownItem = ({
+	href,
+	imgSrc,
+	title,
+	description,
+}: {
+	href: string;
+	imgSrc: string;
+	title: string;
+	description: string;
+}) => (
+	<a
+		className="flex items-center space-x-3 p-3 hover:bg-gray-700 transition duration-200 rounded-md"
+		href={href}
+	>
 		<Image alt={title} width={56} height={56} className="rounded-md shadow-md" src={imgSrc} />
 		<div>
 			<div className="font-semibold text-white">{title}</div>
@@ -36,18 +50,14 @@ const MenuDropdownItem = ({ href, imgSrc, title, description }: { href: string; 
 	</a>
 );
 
-interface UserDropdownProps {
-	setUser: (user: null) => void;
-}
-
-const UserDropdown: React.FC<UserDropdownProps> = ({ setUser }) => {
+const UserDropdown: React.FC<{ setUser: (user: null) => void }> = ({ setUser }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
 	useClickOutside(dropdownRef, () => setIsOpen(false));
 
 	return (
-		<div className="relative" ref={dropdownRef}>
+		<div className="relative hidden md:block" ref={dropdownRef}>
 			<button
 				className="flex items-center space-x-3 bg-gray-800 p-2 rounded-lg hover:bg-gray-700 transition duration-200"
 				onClick={() => setIsOpen(!isOpen)}
@@ -66,7 +76,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setUser }) => {
 					</a>
 					<button
 						onClick={async () => {
-							logout(setUser);
+							await logout(setUser);
 						}}
 						className="block w-full text-left text-white py-2 px-3 rounded-lg hover:bg-red-600 transition duration-200"
 					>
@@ -85,7 +95,7 @@ const Dropdown = ({ title, children }: { title: string; children: React.ReactNod
 	useClickOutside(dropdownRef, () => setIsOpen(false));
 
 	return (
-		<div className="relative" ref={dropdownRef}>
+		<div className="relative">
 			<button
 				className="text-white font-semibold flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg transition duration-200"
 				onClick={() => setIsOpen(!isOpen)}
@@ -102,8 +112,11 @@ const Dropdown = ({ title, children }: { title: string; children: React.ReactNod
 	);
 };
 
+
 const Navigation: React.FC = () => {
 	const { user, setUser } = useAuthContext();
+	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+	const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
 	return (
 		<header className="bg-gray-900 text-white shadow-lg p-4">
@@ -111,66 +124,173 @@ const Navigation: React.FC = () => {
 				{/* Logo */}
 				<div className="flex items-center space-x-3">
 					<a href="/" className="flex items-center">
-						{/* <Image alt="GeoGuessr" src="/_next/static/media/logo.6958f2fb.svg" width={208} height={40} /> */}
 						<h1 className="text-xl font-bold ml-2 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
 							REALorNOT
 						</h1>
 					</a>
 				</div>
 
-				{/* Menu items */}
-				<div className="flex space-x-6 items-center">
+				{/* Desktop Navigation */}
+				<div className="hidden md:flex space-x-6 items-center">
 					{/* Singleplayer Dropdown */}
 					<Dropdown title="Singleplayer">
 						<MenuDropdownItem
 							href="/maps"
-							imgSrc="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fglobetrotter.ed78fa40.webp&amp;w=128&amp;q=75"
+							imgSrc="/map.png"
 							title="Campaign"
-							description="Travel around the world and discover new places!"
+							description="Travel around the world!"
 						/>
 					</Dropdown>
 
 					{/* Multiplayer Dropdown */}
 					<Dropdown title="Multiplayer">
-						<div className="mb-4">
-							<MenuDropdownItem
-								href="/multyplayer/duels"
-								imgSrc="/10179972.png"
-								title="Duels"
-								description="Compete with opponents in global duels."
-							/>
-							<MenuDropdownItem
-								href="/multyplayer/tournaments"
-								imgSrc="/first-place-trophy.png"
-								title="Tournaments"
-								description="Participate in ranked tournaments."
-							/>
-							<MenuDropdownItem
-								href="/multyplayer/custon"
-								imgSrc="/customize.png"
-								title="Custom Games"
-								description="Create and join custom game modes."
-							/>
-
-						</div>
+						<MenuDropdownItem
+							href="/multiplayer/duels"
+							imgSrc="/duels.png"
+							title="Duels"
+							description="Compete globally."
+						/>
+						<MenuDropdownItem
+							href="/multiplayer/tournaments"
+							imgSrc="/tournaments.png"
+							title="Tournaments"
+							description="Join ranked tournaments."
+						/>
+						<MenuDropdownItem
+							href="/multiplayer/custom"
+							imgSrc="/custom.png"
+							title="Custom Games"
+							description="Create or join custom modes."
+						/>
 					</Dropdown>
 
 					{/* Party Dropdown */}
 					<Dropdown title="Party">
 						<MenuDropdownItem
 							href="/party"
-							imgSrc="/content-creator.png"
+							imgSrc="/party.png"
 							title="Host a Party"
-							description="Invite friends to play together!"
+							description="Play with friends."
 						/>
 					</Dropdown>
 				</div>
 
-				{/* User Dropdown */}
-				<UserDropdown setUser={setUser} />
+				{/* User Dropdown (Desktop) */}
+				<div className="hidden md:block">
+					<UserDropdown setUser={setUser} />
+				</div>
+
+				{/* Mobile Menu Toggle */}
+				<button
+					className="md:hidden flex items-center text-white focus:outline-none"
+					onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+					aria-label="Toggle menu"
+				>
+					{mobileMenuOpen ? (
+						/* Close Icon */
+						<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					) : (
+						/* Hamburger Icon */
+						<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+						</svg>
+					)}
+				</button>
 			</div>
+
+			{/* Mobile Menu */}
+			{mobileMenuOpen && (
+				<div className="mt-4 space-y-4 md:hidden">
+					{/* Player Details */}
+					<div>
+						<button
+							onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+							className="flex items-center space-x-3 p-4 bg-gray-800 rounded-lg w-full text-left"
+						>
+							<UserProfileIcon className="h-10 w-10" />
+							<div>
+								<p className="text-white font-semibold">{user?.name || 'Player Name'}</p>
+								<p className="text-gray-400 text-xs">{user?.email || 'player@example.com'}</p>
+							</div>
+							<CaretIcon />
+						</button>
+
+						{/* User Dropdown Links */}
+						{userDropdownOpen && (
+							<div className="mt-2 bg-gray-800 rounded-lg shadow-md border border-gray-700">
+								<a
+									href="/profile"
+									className="block text-white py-2 px-4 hover:bg-gray-700 transition duration-200"
+								>
+									Profile
+								</a>
+								<a
+									href="/settings"
+									className="block text-white py-2 px-4 hover:bg-gray-700 transition duration-200"
+								>
+									Settings
+								</a>
+								<button
+									onClick={async () => {
+										await logout(setUser);
+									}}
+									className="block w-full text-left text-white py-2 px-4 hover:bg-red-600 transition duration-200"
+								>
+									Logout
+								</button>
+							</div>
+						)}
+					</div>
+
+					{/* Navigation Links */}
+					<div className="border-t border-gray-700 pt-4">
+						<Dropdown title="Singleplayer">
+							<MenuDropdownItem
+								href="/maps"
+								imgSrc="/map.png"
+								title="Campaign"
+								description="Travel around the world!"
+							/>
+						</Dropdown>
+						<Dropdown title="Multiplayer">
+							<MenuDropdownItem
+								href="/multiplayer/duels"
+								imgSrc="/duels.png"
+								title="Duels"
+								description="Compete globally."
+							/>
+							<MenuDropdownItem
+								href="/multiplayer/tournaments"
+								imgSrc="/tournaments.png"
+								title="Tournaments"
+								description="Join ranked tournaments."
+							/>
+							<MenuDropdownItem
+								href="/multiplayer/custom"
+								imgSrc="/custom.png"
+								title="Custom Games"
+								description="Create or join custom modes."
+							/>
+						</Dropdown>
+						<Dropdown title="Party">
+							<MenuDropdownItem
+								href="/party"
+								imgSrc="/party.png"
+								title="Host a Party"
+								description="Play with friends."
+							/>
+						</Dropdown>
+					</div>
+				</div>
+			)}
 		</header>
 	);
 };
+
+
+
+
 
 export default Navigation;

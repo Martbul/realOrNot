@@ -202,6 +202,7 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int, db
 	delete(m.Sessions, sess.ID) // Remove session from in-memory storage
 	var highestScore int
 	var winners []string
+	var winnersId []string
 	fmt.Println("scores -> ", scores)
 	for playerID, score := range scores {
 		fmt.Println("plaerId -> ", playerID)
@@ -213,6 +214,7 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int, db
 				fmt.Println("Unable to get user")
 			}
 			winners = []string{playerW.UserName}
+			winnersId = []string{playerID}
 			//winners = []string{playerID}
 		} else if score == highestScore {
 			playerW, err := db.GetUserById(dbConn, playerID)
@@ -221,13 +223,14 @@ func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int, db
 				fmt.Println("Unable to get user")
 			}
 
+			winnersId = append(winnersId, playerID)
 			winners = append(winners, playerW.UserName)
 			//winners = append(winners, playerID)
 		}
 
 	}
 
-	for _, w := range winners {
+	for _, w := range winnersId {
 		fmt.Println(w)
 		db.AddPlayerWin(dbConn, w)
 	}

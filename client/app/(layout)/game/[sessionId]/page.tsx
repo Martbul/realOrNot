@@ -1,14 +1,18 @@
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "@/contexts/gameContext";
 import { useAuthContext } from "@/contexts/authContext";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
+import { use } from "react"; // Import use() for unwrapping promises
+
 interface GamePageProps {
-	params: {
+	params: Promise<{
 		sessionId: string;
-	};
+	}>;
 }
+
 const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	const [startGameTimer, setStartGameTimer] = useState<number>(5);
 	const [guessTimer, setGuessTimer] = useState<number>(10);
@@ -20,6 +24,8 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	const { user } = useAuthContext();
 	const router = useRouter();
 
+	// Resolve params
+	const { sessionId } = use(params);
 
 	const sendGuess = (guess: string) => {
 		if (!game.ws || selectedImage) return;
@@ -28,7 +34,6 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 		console.log("Sent guess:", payload);
 		setSelectedImage(guess);
 	};
-
 
 	useEffect(() => {
 		// Reset all session-specific states
@@ -42,8 +47,7 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 		if (game) {
 			game.winners = []; // Reset winners list
 		}
-	}, [params.sessionId]);
-
+	}, [sessionId]);
 
 	useEffect(() => {
 		if (startGameTimer > 0) {
@@ -73,15 +77,7 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 			setShowWinners(true);
 			setTimeout(() => {
 				router.push("/"); // Redirect to home page after 5 seconds
-
 			}, 5000); // Adjust the timeout duration as needed
-
-			//	setTimeout(() => {
-
-			//		setShowWinners(true);
-			//	}, 6000); // Adjust the timeout duration as needed
-
-
 		}
 	}, [game.winners, router]);
 
@@ -133,7 +129,6 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 				</p>
 			</div>
 
-			{/* Image Grid */}
 			{game.roundData && (
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto mb-6">
 					{["img_1_url", "img_2_url"].map((key, index) => (
@@ -164,3 +159,15 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 };
 
 export default GamePage;
+
+
+
+
+
+
+
+
+
+
+
+

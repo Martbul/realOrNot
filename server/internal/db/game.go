@@ -53,25 +53,29 @@ func AddPlayerWin(db *sqlx.DB, userID string) error {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
+	// Update winsLeaderboard table
 	queryLeaderboard := `
 		INSERT INTO winsLeaderboard (user_id, total_wins) 
 		VALUES ($1, 1)
 		ON CONFLICT (user_id) 
 		DO UPDATE SET total_wins = winsLeaderboard.total_wins + 1, last_updated = CURRENT_TIMESTAMP`
-	_, err = tx.Exec(queryLeaderboard, userID)
-	if err != nil {
+	if _, err := tx.Exec(queryLeaderboard, userID); err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update winsLeaderboard for userID %s: %w", userID, err)
 	}
 
-	queryUsers := `UPDATE users SET wins = wins + 1 WHERE id = $1`
-	_, err = tx.Exec(queryUsers, userID)
-	if err != nil {
+	// Synchronize users table
+	queryUsers := `
+		UPDATE users 
+		SET wins = (SELECT total_wins FROM winsLeaderboard WHERE user_id = $1) 
+		WHERE id = $1`
+	if _, err := tx.Exec(queryUsers, userID); err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update users table for userID %s: %w", userID, err)
 	}
 
-	if err = tx.Commit(); err != nil {
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 

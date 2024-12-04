@@ -231,7 +231,7 @@ func (m *Matchmaker) duelEndSession(sess *duelSession.Session, scores map[string
 	}
 
 	for _, w := range winnersId {
-		fmt.Println(w)
+		fmt.Println("winnersId:", w)
 		db.AddPlayerWin(dbConn, w)
 	}
 

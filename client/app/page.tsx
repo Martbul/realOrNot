@@ -87,7 +87,7 @@ export default function Home() {
   //
 
   return (
-    <section className="flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
+    <section className="flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white ">
       <Navigation />
 
       <main className="flex-grow flex flex-col items-center justify-around p-4 gap-10">
@@ -102,7 +102,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-8 items-center justify-center">
             <Card className="w-80 shadow-md">
               <CardHeader>
-                <CardTitle className="text-2xl">Join a Game</CardTitle>
+                <CardTitle className="text-2xl">Play Duel</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center gap-4">
                 <Button

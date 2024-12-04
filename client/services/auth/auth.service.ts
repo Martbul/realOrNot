@@ -1,8 +1,9 @@
-const url = "http://localhost:8080/user"
+//const url = "http://localhost:8080/user"
+const URL = process.env.NEXT_PUBLIC_LOCAL_SERVER_URL;
 // authService.js
 export const login = async (email: string, password: string, setUser: Function) => {
 	try {
-		const response = await fetch(url + "/login", {
+		const response = await fetch(URL + "/login", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -40,7 +41,7 @@ export const login = async (email: string, password: string, setUser: Function) 
 // authService.js
 export const signup = async (username: string, email: string, password: string, setUser: Function) => {
 	try {
-		const response = await fetch(url + "/signup", {
+		const response = await fetch(URL + "/signup", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

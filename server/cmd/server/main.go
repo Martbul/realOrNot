@@ -14,7 +14,7 @@ import (
 	"github.com/martbul/realOrNot/internal/api/v1/stats"
 	"github.com/martbul/realOrNot/internal/api/v1/user"
 	"github.com/martbul/realOrNot/internal/db"
-	"github.com/martbul/realOrNot/internal/game/matchmaker"
+	duelMatchmaker "github.com/martbul/realOrNot/internal/games/duelMatchmaker"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
 
@@ -41,11 +41,11 @@ func main() {
 	})
 
 	// Move to config dir
-	mm := matchmaker.NewMatchmaker(2)
+	duelMM := duelMatchmaker.NewDuelMatchmaker(2)
 
 	api := surveMux.PathPrefix("").Subrouter()
 	user.RegisterUserRoutes(api, dbConn)
-	game.RegisterGameRoutes(api, mm, dbConn)
+	game.RegisterGameRoutes(api, duelMM, dbConn)
 	stats.RegisterStatsRoutes(api, dbConn)
 
 	cors := gohandlers.CORS(

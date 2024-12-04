@@ -8,7 +8,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/db"
-	"github.com/martbul/realOrNot/internal/game/session"
+	duelSession "github.com/martbul/realOrNot/internal/games/duelSession"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
@@ -16,21 +16,21 @@ import (
 type Matchmaker struct {
 	Mu         sync.Mutex
 	queue      []*types.Player
-	Sessions   map[string]*session.Session
+	Sessions   map[string]*duelSession.Session
 	minPlayers int
 	// Shared map to track if players are in an active game
 	PlayerStates sync.Map // map[playerID]bool (true = in game, false = waiting)
 }
 
-func NewMatchmaker(minPlayers int) *Matchmaker {
+func NewDuelMatchmaker(minPlayers int) *Matchmaker {
 	return &Matchmaker{
 		queue:      []*types.Player{},
-		Sessions:   make(map[string]*session.Session),
+		Sessions:   make(map[string]*duelSession.Session),
 		minPlayers: minPlayers,
 	}
 }
 
-func (m *Matchmaker) QueuePlayer(player *types.Player, dbConn *sqlx.DB) (*session.Session, error) {
+func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*duelSession.Session, error) {
 	log := logger.GetLogger()
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
@@ -55,7 +55,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player, dbConn *sqlx.DB) (*sessio
 		m.queue = m.queue[m.minPlayers:]
 
 		// Create a new session
-		newSession := session.NewSession(players)
+		newSession := duelSession.NewSession(players)
 		m.Sessions[newSession.ID] = newSession // Add to in-memory sessions
 
 		// Mark players as in-game
@@ -65,7 +65,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player, dbConn *sqlx.DB) (*sessio
 
 		// Notify players about the game session start
 		for _, p := range players {
-			go func(player *types.Player, session *session.Session) {
+			go func(player *types.Player, session *duelSession.Session) {
 				if player.Conn != nil {
 					err := player.Conn.WriteJSON(map[string]string{
 						"status":  "game_found",
@@ -79,7 +79,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player, dbConn *sqlx.DB) (*sessio
 			}(p, newSession)
 		}
 
-		go m.StartSession(newSession, dbConn)
+		go m.DuelStartSession(newSession, dbConn)
 
 		return newSession, nil
 	}
@@ -87,7 +87,7 @@ func (m *Matchmaker) QueuePlayer(player *types.Player, dbConn *sqlx.DB) (*sessio
 	return nil, nil
 }
 
-func (m *Matchmaker) StartSession(sess *session.Session, db *sqlx.DB) {
+func (m *Matchmaker) DuelStartSession(sess *duelSession.Session, db *sqlx.DB) {
 
 	time.Sleep(5 * time.Second)
 
@@ -106,10 +106,10 @@ func (m *Matchmaker) StartSession(sess *session.Session, db *sqlx.DB) {
 		}
 	}
 
-	go m.runGame(sess, db)
+	go m.duelrunGame(sess, db)
 }
 
-func (m *Matchmaker) runGame(sess *session.Session, dbConn *sqlx.DB) {
+func (m *Matchmaker) duelrunGame(sess *duelSession.Session, dbConn *sqlx.DB) {
 	fmt.Println("sessPlayers", sess.Players)
 
 	scores := make(map[string]int)
@@ -192,10 +192,10 @@ func (m *Matchmaker) runGame(sess *session.Session, dbConn *sqlx.DB) {
 		}
 	}
 
-	m.endSession(sess, scores, dbConn)
+	m.duelEndSession(sess, scores, dbConn)
 }
 
-func (m *Matchmaker) endSession(sess *session.Session, scores map[string]int, dbConn *sqlx.DB) {
+func (m *Matchmaker) duelEndSession(sess *duelSession.Session, scores map[string]int, dbConn *sqlx.DB) {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
 

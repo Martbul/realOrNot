@@ -146,19 +146,19 @@ const Navigation: React.FC = () => {
 					<Dropdown title="Multiplayer">
 						<MenuDropdownItem
 							href="/multiplayer/duels"
-							imgSrc="/duels.png"
+							imgSrc="/10179972.png"
 							title="Duels"
 							description="Compete globally."
 						/>
 						<MenuDropdownItem
 							href="/multiplayer/tournaments"
-							imgSrc="/tournaments.png"
+							imgSrc="/first-place-trophy.png"
 							title="Tournaments"
 							description="Join ranked tournaments."
 						/>
 						<MenuDropdownItem
 							href="/multiplayer/custom"
-							imgSrc="/custom.png"
+							imgSrc="/customize.png"
 							title="Custom Games"
 							description="Create or join custom modes."
 						/>
@@ -168,7 +168,7 @@ const Navigation: React.FC = () => {
 					<Dropdown title="Party">
 						<MenuDropdownItem
 							href="/party"
-							imgSrc="/party.png"
+							imgSrc="/content-creator.png"
 							title="Host a Party"
 							description="Play with friends."
 						/>
@@ -257,19 +257,19 @@ const Navigation: React.FC = () => {
 						<Dropdown title="Multiplayer">
 							<MenuDropdownItem
 								href="/multiplayer/duels"
-								imgSrc="/duels.png"
+								imgSrc="/10179972.png"
 								title="Duels"
 								description="Compete globally."
 							/>
 							<MenuDropdownItem
 								href="/multiplayer/tournaments"
-								imgSrc="/tournaments.png"
+								imgSrc="/first-place-trophy.png"
 								title="Tournaments"
 								description="Join ranked tournaments."
 							/>
 							<MenuDropdownItem
 								href="/multiplayer/custom"
-								imgSrc="/custom.png"
+								imgSrc="/customize.png"
 								title="Custom Games"
 								description="Create or join custom modes."
 							/>
@@ -277,7 +277,7 @@ const Navigation: React.FC = () => {
 						<Dropdown title="Party">
 							<MenuDropdownItem
 								href="/party"
-								imgSrc="/party.png"
+								imgSrc="/content-creator.png"
 								title="Host a Party"
 								description="Play with friends."
 							/>

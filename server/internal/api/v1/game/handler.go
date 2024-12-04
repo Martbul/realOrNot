@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
-	"github.com/martbul/realOrNot/internal/game/matchmaker"
+	duelMatchmaker "github.com/martbul/realOrNot/internal/games/duelMatchmaker"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
@@ -19,7 +19,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFunc {
+func JoinDuelViaWebSocket(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
 
@@ -61,7 +61,7 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.Handl
 				select {
 				case <-time.After(10 * time.Second):
 					// Check if the player is in a game
-					if inGame, ok := mm.PlayerStates.Load(player.ID); ok && inGame.(bool) {
+					if inGame, ok := duelMM.PlayerStates.Load(player.ID); ok && inGame.(bool) {
 						return // Exit loop if player is in a game
 					}
 
@@ -79,7 +79,7 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.Handl
 		}()
 
 		// Add player to matchmaking queue
-		newSession, err := mm.QueuePlayer(player, dbConn)
+		newSession, err := duelMM.DuelQueuePlayer(player, dbConn)
 		if err != nil {
 			log.Error("Error adding player to queue:", err)
 			conn.WriteJSON(map[string]string{"error": "Internal server error"})

@@ -135,9 +135,9 @@ const Navigation: React.FC = () => {
 					{/* Singleplayer Dropdown */}
 					<Dropdown title="Singleplayer">
 						<MenuDropdownItem
-							href="/maps"
+							href="/singleplayer/streak"
 							imgSrc="/map.png"
-							title="Campaign"
+							title="Streak"
 							description="Travel around the world!"
 						/>
 					</Dropdown>
@@ -248,9 +248,9 @@ const Navigation: React.FC = () => {
 					<div className="border-t border-gray-700 pt-4">
 						<Dropdown title="Singleplayer">
 							<MenuDropdownItem
-								href="/maps"
+								href="/singleplayer/streak"
 								imgSrc="/map.png"
-								title="Campaign"
+								title="Streak"
 								description="Travel around the world!"
 							/>
 						</Dropdown>

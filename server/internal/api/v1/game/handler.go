@@ -15,15 +15,14 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins
+		return true
 	},
 }
 
-func JoinDuelViaWebSocket(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFunc {
+func JoinDuel(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
 
-		// Upgrade the connection to WebSocket
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Error("WebSocket upgrade failed:", err)
@@ -31,10 +30,8 @@ func JoinDuelViaWebSocket(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) ht
 			return
 		}
 
-		// Channels to signal goroutine exit
 		done := make(chan struct{})
 
-		// Set WebSocket read deadlines and pong handler
 		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		conn.SetPongHandler(func(string) error {
 			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
@@ -55,12 +52,10 @@ func JoinDuelViaWebSocket(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) ht
 			Conn: conn,
 		}
 
-		// Goroutine for sending periodic "still waiting" messages
 		go func() {
 			for {
 				select {
 				case <-time.After(10 * time.Second):
-					// Check if the player is in a game
 					if inGame, ok := duelMM.PlayerStates.Load(player.ID); ok && inGame.(bool) {
 						return // Exit loop if player is in a game
 					}
@@ -78,7 +73,6 @@ func JoinDuelViaWebSocket(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) ht
 			}
 		}()
 
-		// Add player to matchmaking queue
 		newSession, err := duelMM.DuelQueuePlayer(player, dbConn)
 		if err != nil {
 			log.Error("Error adding player to queue:", err)
@@ -86,7 +80,6 @@ func JoinDuelViaWebSocket(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) ht
 			return
 		}
 
-		// Notify player if they joined a session
 		if newSession != nil {
 			if err := conn.WriteJSON(map[string]string{
 				"status":   "game_found",
@@ -98,12 +91,17 @@ func JoinDuelViaWebSocket(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) ht
 			}
 		}
 
-		// Block until the `done` channel is closed
 		<-done
 
-		// Close the WebSocket connection when done
 		log.Info("Closing WebSocket connection for player:", player.ID)
 		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		conn.Close()
+	}
+}
+
+func PlayStreak(dbConn *sqlx.DB) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
 	}
 }

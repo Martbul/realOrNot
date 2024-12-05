@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthContextWrapper } from "@/contexts/authContext";
 import { GameContextWrapper } from "@/contexts/gameContext";
 import Provider from "@/utils/Provider";
+import { StreakGameContextWrapper } from "@/contexts/streakGameContext";
 
 // Define custom fonts
 const geistSans = localFont({
@@ -33,7 +34,9 @@ export default function RootLayout({
       <body className="antialiased remove-selecting-text">
         <AuthContextWrapper>
           <GameContextWrapper>
-            <Provider>{children}</Provider>
+            <StreakGameContextWrapper>
+              <Provider>{children}</Provider>
+            </StreakGameContextWrapper>
           </GameContextWrapper>
         </AuthContextWrapper>
       </body>

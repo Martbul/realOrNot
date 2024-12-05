@@ -3,8 +3,40 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Navigation from "@/components/navigation/Navigation";
+import { useMutation } from "@tanstack/react-query";
+import { useAuthContext } from "@/contexts/authContext";
+import { useRouter } from "next/navigation";
+import { handler } from "tailwindcss-animate";
+import { playStreakGame } from "@/services/game/game.service";
+import { useStreakGameContext } from "@/contexts/streakGameContext";
 
 export default function Streak() {
+
+	const { user } = useAuthContext();
+	const { streakGame, setStreakGame } = useStreakGameContext();
+	const router = useRouter();
+	const {
+		mutate: joinGameMutation,
+		isLoading: isJoinGameLoading,
+		isError: isJoinGameError,
+		error: joinGameError,
+	} = useMutation({
+		mutationFn: async () => {
+			if (!user) {
+				throw new Error("User is not authenticated.");
+			}
+			return await playStreakGame(user.id, streakGame, setStreakGame);
+		},
+		onSuccess: (sessionID) => {
+			router.replace(`/streakGame/${sessionID}`);
+		},
+	});
+
+	const handleJoinGame = () => {
+		joinGameMutation();
+	};
+
+
 	return (
 		<div>
 			<Navigation />
@@ -34,7 +66,7 @@ export default function Streak() {
 					<Button
 						variant="primary"
 						className="px-10 py-4 text-xl font-bold bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-black rounded-lg hover:scale-105 transform transition-all shadow-lg"
-						onClick={() => alert("Game starting...")}
+						onClick={() => handleJoinGame()}
 					>
 						Play Now
 					</Button>

@@ -1,4 +1,4 @@
-package matchmaker
+package duelMatchmaker
 
 import (
 	"context"
@@ -8,39 +8,36 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/db"
-	duelSession "github.com/martbul/realOrNot/internal/games/duelSession"
+	"github.com/martbul/realOrNot/internal/games/duelSession"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
 
 type Matchmaker struct {
-	Mu         sync.Mutex
-	queue      []*types.Player
-	Sessions   map[string]*duelSession.Session
-	minPlayers int
-	// Shared map to track if players are in an active game
+	Mu           sync.Mutex
+	queue        []*types.Player
+	Sessions     map[string]*duelSession.DuelSession
+	minPlayers   int
 	PlayerStates sync.Map // map[playerID]bool (true = in game, false = waiting)
 }
 
 func NewDuelMatchmaker(minPlayers int) *Matchmaker {
 	return &Matchmaker{
 		queue:      []*types.Player{},
-		Sessions:   make(map[string]*duelSession.Session),
+		Sessions:   make(map[string]*duelSession.DuelSession),
 		minPlayers: minPlayers,
 	}
 }
 
-func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*duelSession.Session, error) {
+func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*duelSession.DuelSession, error) {
 	log := logger.GetLogger()
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
 
 	m.queue = append(m.queue, player)
 
-	// Mark player as waiting
 	m.PlayerStates.Store(player.ID, false)
 
-	// Inform the player that they are in the queue
 	if err := player.Conn.WriteJSON(map[string]string{
 		"status":  "queued",
 		"message": "You have been added to the queue. Waiting for more players...",
@@ -49,23 +46,19 @@ func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*du
 		return nil, err
 	}
 
-	// Check if enough players are in the queue to start a session
 	if len(m.queue) >= m.minPlayers {
 		players := m.queue[:m.minPlayers]
 		m.queue = m.queue[m.minPlayers:]
 
-		// Create a new session
-		newSession := duelSession.NewSession(players)
+		newSession := duelSession.NewDuelSession(players)
 		m.Sessions[newSession.ID] = newSession // Add to in-memory sessions
 
-		// Mark players as in-game
 		for _, p := range players {
 			m.PlayerStates.Store(p.ID, true)
 		}
 
-		// Notify players about the game session start
 		for _, p := range players {
-			go func(player *types.Player, session *duelSession.Session) {
+			go func(player *types.Player, session *duelSession.DuelSession) {
 				if player.Conn != nil {
 					err := player.Conn.WriteJSON(map[string]string{
 						"status":  "game_found",
@@ -87,7 +80,7 @@ func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*du
 	return nil, nil
 }
 
-func (m *Matchmaker) DuelStartSession(sess *duelSession.Session, db *sqlx.DB) {
+func (m *Matchmaker) DuelStartSession(sess *duelSession.DuelSession, db *sqlx.DB) {
 
 	time.Sleep(5 * time.Second)
 
@@ -109,7 +102,7 @@ func (m *Matchmaker) DuelStartSession(sess *duelSession.Session, db *sqlx.DB) {
 	go m.duelrunGame(sess, db)
 }
 
-func (m *Matchmaker) duelrunGame(sess *duelSession.Session, dbConn *sqlx.DB) {
+func (m *Matchmaker) duelrunGame(sess *duelSession.DuelSession, dbConn *sqlx.DB) {
 	fmt.Println("sessPlayers", sess.Players)
 
 	scores := make(map[string]int)
@@ -118,10 +111,8 @@ func (m *Matchmaker) duelrunGame(sess *duelSession.Session, dbConn *sqlx.DB) {
 			fmt.Println("Player with empty ID found:", p)
 			continue
 		}
-		fmt.Println("plaeyerId", p.ID)
 		scores[p.ID] = 0
 	}
-	fmt.Println("initial scores:", scores)
 
 	//TODO: Improve error handling
 	gameRounds, err := db.GetRandomRounds(dbConn)
@@ -195,7 +186,7 @@ func (m *Matchmaker) duelrunGame(sess *duelSession.Session, dbConn *sqlx.DB) {
 	m.duelEndSession(sess, scores, dbConn)
 }
 
-func (m *Matchmaker) duelEndSession(sess *duelSession.Session, scores map[string]int, dbConn *sqlx.DB) {
+func (m *Matchmaker) duelEndSession(sess *duelSession.DuelSession, scores map[string]int, dbConn *sqlx.DB) {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
 
@@ -203,9 +194,7 @@ func (m *Matchmaker) duelEndSession(sess *duelSession.Session, scores map[string
 	var highestScore int
 	var winners []string
 	var winnersId []string
-	fmt.Println("scores -> ", scores)
 	for playerID, score := range scores {
-		fmt.Println("plaerId -> ", playerID)
 		if score > highestScore {
 			highestScore = score
 			playerW, err := db.GetUserById(dbConn, playerID)
@@ -215,7 +204,6 @@ func (m *Matchmaker) duelEndSession(sess *duelSession.Session, scores map[string
 			}
 			winners = []string{playerW.UserName}
 			winnersId = []string{playerID}
-			//winners = []string{playerID}
 		} else if score == highestScore {
 			playerW, err := db.GetUserById(dbConn, playerID)
 			//TODO: Improve error handling
@@ -225,13 +213,11 @@ func (m *Matchmaker) duelEndSession(sess *duelSession.Session, scores map[string
 
 			winnersId = append(winnersId, playerID)
 			winners = append(winners, playerW.UserName)
-			//winners = append(winners, playerID)
 		}
 
 	}
 
 	for _, w := range winnersId {
-		fmt.Println("winnersId:", w)
 		db.AddPlayerWin(dbConn, w)
 	}
 

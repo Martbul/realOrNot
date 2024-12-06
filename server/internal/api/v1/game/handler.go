@@ -8,7 +8,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/games/duelMatchmaker"
 	"github.com/martbul/realOrNot/internal/games/streakGameMatchmaker"
-	"github.com/martbul/realOrNot/internal/games/streakGameSession"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )

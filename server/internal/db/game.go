@@ -9,6 +9,38 @@ import (
 	"github.com/martbul/realOrNot/pkg/logger"
 )
 
+func GetRound(db *sqlx.DB) (types.Round, error) {
+	log := logger.GetLogger()
+	if db == nil {
+		return types.Round{}, fmt.Errorf("DB is nil in GetRound")
+	}
+
+	var round types.Round
+
+	query := `
+    SELECT img_1_url, img_2_url, correct
+    FROM (
+        SELECT DISTINCT img_1_url, img_2_url, correct
+        FROM rounds
+    ) subquery
+    ORDER BY RANDOM()
+    LIMIT 1;
+`
+	err := db.Select(&round, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Warn("No rounds found in the database")
+			return types.Round{}, nil
+		}
+		log.Error("Failed to fetch random rounds: ", err)
+		return types.Round{}, err
+	}
+
+	log.Info("Random rounds fetched successfully")
+
+	return round, nil
+}
+
 func GetRandomRounds(db *sqlx.DB) ([]types.Round, error) {
 	log := logger.GetLogger()
 	if db == nil {

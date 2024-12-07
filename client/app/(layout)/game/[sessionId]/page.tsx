@@ -5,8 +5,15 @@ import { useGameContext } from "@/contexts/gameContext";
 import { useAuthContext } from "@/contexts/authContext";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
+import { use } from "react"; // Import use() for unwrapping promises
 
-const GamePage: React.FC = () => {
+interface GamePageProps {
+	params: Promise<{
+		sessionId: string;
+	}>;
+}
+
+const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	const [startGameTimer, setStartGameTimer] = useState<number>(5);
 	const [guessTimer, setGuessTimer] = useState<number>(10);
 	const [showTimer, setShowTimer] = useState<boolean>(true);
@@ -17,6 +24,9 @@ const GamePage: React.FC = () => {
 	const { user } = useAuthContext();
 	const router = useRouter();
 
+	// Resolve params
+	const { sessionId } = use(params);
+
 	const sendGuess = (guess: string) => {
 		if (!game.ws || selectedImage) return;
 		const payload = { player_id: user, guess };
@@ -24,6 +34,20 @@ const GamePage: React.FC = () => {
 		console.log("Sent guess:", payload);
 		setSelectedImage(guess);
 	};
+
+	useEffect(() => {
+		// Reset all session-specific states
+		setStartGameTimer(5);
+		setGuessTimer(10);
+		setShowTimer(true);
+		setShowWinners(false);
+		setSelectedImage(null);
+
+		// Clear game-specific data to ensure no old state persists
+		if (game) {
+			game.winners = []; // Reset winners list
+		}
+	}, [sessionId]);
 
 	useEffect(() => {
 		if (startGameTimer > 0) {
@@ -105,7 +129,6 @@ const GamePage: React.FC = () => {
 				</p>
 			</div>
 
-			{/* Image Grid */}
 			{game.roundData && (
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto mb-6">
 					{["img_1_url", "img_2_url"].map((key, index) => (
@@ -136,3 +159,15 @@ const GamePage: React.FC = () => {
 };
 
 export default GamePage;
+
+
+
+
+
+
+
+
+
+
+
+

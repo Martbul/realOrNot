@@ -5,19 +5,15 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
-	"github.com/martbul/realOrNot/internal/game/matchmaker"
+	"github.com/martbul/realOrNot/internal/games/duelMatchmaker"
+	"github.com/martbul/realOrNot/internal/games/streakGameMatchmaker"
 )
 
-// RegisterGameRoutes sets up the routes for game-related operations.
-func RegisterGameRoutes(r *mux.Router, matchmaker *matchmaker.Matchmaker, db *sqlx.DB) {
+func RegisterGameRoutes(r *mux.Router, duelMM *duelMatchmaker.Matchmaker, streakGameMM *streakGameMatchmaker.StreakGameMatchmaker, db *sqlx.DB) {
 	gameRouter := r.PathPrefix("/game").Subrouter()
 
-	// WebSocket-based game join route
-	gameRouter.HandleFunc("/join", JoinGameViaWebSocket(matchmaker, db)).Methods(http.MethodGet)
+	gameRouter.HandleFunc("/joinDuel", JoinDuel(duelMM, db)).Methods(http.MethodGet)
 
-	// WebSocket connection for a specific game session
-	//	gameRouter.HandleFunc("/session/{session_id}", HandleWebSocketConnection(matchmaker)).Methods(http.MethodGet)
+	gameRouter.HandleFunc("/playStreak", PlayStreak(streakGameMM, db)).Methods(http.MethodGet)
 
-	// Fetch game session status
-	//	gameRouter.HandleFunc("/{id}", GetGameStatus(db)).Methods(http.MethodGet)
 }

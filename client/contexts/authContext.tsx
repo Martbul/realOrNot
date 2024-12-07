@@ -16,27 +16,31 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthContextWrapper({ children }: { children: React.ReactNode }) {
-	const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<User>({
+		id: "-1",
+	});
+	const [isMounted, setIsMounted] = useState(false);
 
 	useEffect(() => {
-		const checkSession = async () => {
-			try {
-				const accessToken = localStorage.getItem("accessToken");
-				if (!accessToken) {
-					const newAccessToken = await refreshToken();
-					localStorage.setItem("accessToken", newAccessToken);
-				}
-				const userId = JSON.parse(localStorage.getItem("userId") || "null");
-				if (userId) {
-					setUser({ id: userId }); // Assuming you only store `id`
-				}
-			} catch (error) {
-				console.error("Failed to restore session:", error);
-			}
-		};
+		// This ensures the code only runs in the browser
+		setIsMounted(true);
 
-		checkSession();
+		// Retrieve user data from localStorage
+		const userId = localStorage.getItem("userId");
+		if (userId) {
+			setUser(JSON.parse(userId));
+		}
 	}, []);
+
+	// Prevent rendering the AuthContext until the component is mounted (client-side)
+	if (!isMounted) {
+		return null;
+	}
+
+	const contextValue: AuthContextType = {
+		user,
+		setUser,
+	};
 
 	return (
 		<AuthContext.Provider value={{ user, setUser }}>

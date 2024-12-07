@@ -17,7 +17,7 @@ import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useAuthContext } from "@/contexts/authContext";
 import { signup } from "@/services/auth/auth.service";
-//import { AnimatedCircleIcon, ChromeIcon, GithubIcon } from "@/utils/svgIcons";
+import { AnimatedCircleIcon, ChromeIcon, GithubIcon } from "@/utils/svgIcons";
 
 type SignUpFormData = {
   username: string;
@@ -62,11 +62,11 @@ const SignUp = () => {
             <CardContent className="grid gap-4">
               <div className="grid grid-cols-2 gap-6">
                 <Button variant="outline">
-                  {/*                    <GithubIcon className="mr-2 h-4 w-4" /> */}
+                  <GithubIcon className="mr-2 h-4 w-4" />
                   Github
                 </Button>
                 <Button variant="outline">
-                  {/*           <ChromeIcon className="mr-2 h-4 w-4" /> */}
+                  <ChromeIcon className="mr-2 h-4 w-4" />
                   Google
                 </Button>
               </div>
@@ -188,7 +188,7 @@ const SignUp = () => {
 
             <Link
               className="flex items-center rounded-md bg-zinc-800 p-2 text-sm font-medium text-gray-200 hover:bg-neutral-600"
-              href="/signin"
+              href="/login"
             >
               Sign In Now
             </Link>

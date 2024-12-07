@@ -6,7 +6,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
-	"github.com/martbul/realOrNot/internal/game/matchmaker"
+	"github.com/martbul/realOrNot/internal/games/duelMatchmaker"
+	"github.com/martbul/realOrNot/internal/games/streakGameMatchmaker"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
@@ -15,15 +16,14 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins
+		return true
 	},
 }
 
-func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFunc {
+func JoinDuel(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := logger.GetLogger()
 
-		// Upgrade the connection to WebSocket
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Error("WebSocket upgrade failed:", err)
@@ -31,10 +31,8 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.Handl
 			return
 		}
 
-		// Channels to signal goroutine exit
 		done := make(chan struct{})
 
-		// Set WebSocket read deadlines and pong handler
 		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		conn.SetPongHandler(func(string) error {
 			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
@@ -55,13 +53,11 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.Handl
 			Conn: conn,
 		}
 
-		// Goroutine for sending periodic "still waiting" messages
 		go func() {
 			for {
 				select {
 				case <-time.After(10 * time.Second):
-					// Check if the player is in a game
-					if inGame, ok := mm.PlayerStates.Load(player.ID); ok && inGame.(bool) {
+					if inGame, ok := duelMM.PlayerStates.Load(player.ID); ok && inGame.(bool) {
 						return // Exit loop if player is in a game
 					}
 
@@ -78,15 +74,13 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.Handl
 			}
 		}()
 
-		// Add player to matchmaking queue
-		newSession, err := mm.QueuePlayer(player, dbConn)
+		newSession, err := duelMM.DuelQueuePlayer(player, dbConn)
 		if err != nil {
 			log.Error("Error adding player to queue:", err)
 			conn.WriteJSON(map[string]string{"error": "Internal server error"})
 			return
 		}
 
-		// Notify player if they joined a session
 		if newSession != nil {
 			if err := conn.WriteJSON(map[string]string{
 				"status":   "game_found",
@@ -98,10 +92,58 @@ func JoinGameViaWebSocket(mm *matchmaker.Matchmaker, dbConn *sqlx.DB) http.Handl
 			}
 		}
 
-		// Block until the `done` channel is closed
 		<-done
 
-		// Close the WebSocket connection when done
+		log.Info("Closing WebSocket connection for player:", player.ID)
+		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+		conn.Close()
+	}
+}
+
+func PlayStreak(streatGameMM *streakGameMatchmaker.StreakGameMatchmaker, dbConn *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := logger.GetLogger()
+
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Error("WebSocket upgrade failed:", err)
+			http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
+			return
+		}
+
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		conn.SetPongHandler(func(string) error {
+			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+			return nil
+		})
+
+		var playerData struct {
+			PlayerID string `json:"player_id"`
+		}
+		if err := conn.ReadJSON(&playerData); err != nil {
+			log.Error("Error reading player data:", err)
+			conn.WriteJSON(map[string]string{"error": "Invalid request payload"})
+			return
+		}
+
+		player := &types.Player{
+			ID:   playerData.PlayerID,
+			Conn: conn,
+		}
+
+		streakGameSession := streatGameMM.LoadingStreakGame(player, dbConn)
+
+		if streakGameSession != nil {
+			if err := conn.WriteJSON(map[string]string{
+				"status":   "game_starting",
+				"session":  streakGameSession.ID,
+				"message":  "Game session started!",
+				"playerId": player.ID,
+			}); err != nil {
+				log.Error("Error notifying player about game session:", err)
+			}
+		}
+
 		log.Info("Closing WebSocket connection for player:", player.ID)
 		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		conn.Close()

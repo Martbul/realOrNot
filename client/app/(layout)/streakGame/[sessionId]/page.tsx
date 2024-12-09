@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useGameContext } from "@/contexts/gameContext";
 import { useAuthContext } from "@/contexts/authContext";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
 import { use } from "react"; // Import use() for unwrapping promises
+import { useStreakGameContext } from "@/contexts/streakGameContext";
 
 interface StreakGamePageProps {
 	params: Promise<{
@@ -19,7 +19,7 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 	const [showWinners, setShowWinners] = useState<boolean>(false);
 
-	const { game } = useGameContext();
+	const { streakGame } = useStreakGameContext();
 	const { user } = useAuthContext();
 	const router = useRouter();
 
@@ -27,24 +27,22 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 	const { sessionId } = use(params);
 
 	const sendGuess = (guess: string) => {
-		if (!game.ws || selectedImage) return;
+		if (!streakGame.ws || selectedImage) return;
 		const payload = { player_id: user, guess };
-		game.ws.send(JSON.stringify(payload));
+		streakGame.ws.send(JSON.stringify(payload));
 		console.log("Sent guess:", payload);
 		setSelectedImage(guess);
 	};
 
 	useEffect(() => {
-		// Reset all session-specific states
 		setStartGameTimer(5);
 		setGuessTimer(10);
 		setShowTimer(true);
 		setShowWinners(false);
 		setSelectedImage(null);
 
-		// Clear game-specific data to ensure no old state persists
-		if (game) {
-			game.winners = []; // Reset winners list
+		if (streakGame) {
+			streakGame.finalScore = []; // Reset winners list
 		}
 	}, [sessionId]);
 
@@ -65,22 +63,22 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 	}, [showTimer, guessTimer]);
 
 	useEffect(() => {
-		if (game && game.roundData) {
+		if (streakGame && streakGame.roundData) {
 			setSelectedImage(null);
 			setGuessTimer(10);
 		}
-	}, [game]);
+	}, [streakGame]);
 
 	useEffect(() => {
-		if (game.winners && game.winners.length > 0) {
+		if (streakGame.finalScore) {
 			setShowWinners(true);
 			setTimeout(() => {
 				router.push("/"); // Redirect to home page after 5 seconds
 			}, 5000); // Adjust the timeout duration as needed
 		}
-	}, [game.winners, router]);
+	}, [streakGame.finalScore, router]);
 
-	if (!game) {
+	if (!streakGame) {
 		return (
 			<div className="flex items-center justify-center min-h-screen bg-gray-100">
 				<p className="text-lg font-medium text-gray-700">Loading game...</p>
@@ -95,11 +93,12 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 			{showWinners && (
 				<div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-50">
 					<h2 className="text-4xl font-bold text-white mb-4">🎉 Congratulations! 🎉</h2>
-					{game.winners.map((winner, index) => (
-						<p key={index} className="text-2xl font-medium text-yellow-300">
-							{winner}
+					{streakGame.finalScore && (
+
+						<p className="text-2xl font-medium text-yellow-300">
+							{streakGame.finalScore}
 						</p>
-					))}
+					)}
 					<p className="text-lg text-gray-300 mt-2">
 						Redirecting to the home page in 5 seconds...
 					</p>
@@ -117,7 +116,7 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 
 			<div className="text-center mb-6">
 				<h1 className="text-3xl font-extrabold text-gray-800">
-					Round {game.currentRound} of {game.totalRounds}
+					Round {streakGame.currentRound}
 				</h1>
 				<p className="text-gray-600 mt-2">Make your best guess to win!</p>
 			</div>
@@ -128,24 +127,24 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 				</p>
 			</div>
 
-			{game.roundData && (
+			{streakGame.roundData && streakGame.roundData.lenght > 0 && (
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto mb-6">
 					{["img_1_url", "img_2_url"].map((key, index) => (
 						<div
 							key={key}
 							className={`relative w-full h-64 sm:h-96 rounded-lg shadow-md cursor-pointer 
               ${selectedImage
-									? selectedImage === game.roundData[key]
+									? selectedImage === streakGame.roundData[key]
 										? "border-4 border-green-500"
 										: "opacity-50 cursor-not-allowed"
 									: "hover:scale-105 hover:border-4 hover:border-indigo-500 transform transition duration-300"
 								}`}
 							onClick={() => {
-								if (!selectedImage) sendGuess(game.roundData[key]);
+								if (!selectedImage) sendGuess(streakGame.roundData[key]);
 							}}
 						>
 							<img
-								src={game.roundData[key]}
+								src={streakGame.roundData[key]}
 								alt={`Image ${index + 1}`}
 								className="absolute inset-0 w-full h-full object-contain"
 							/>

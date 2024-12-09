@@ -40,6 +40,7 @@ export interface StreakGame {
   score: number;
   roundData: any;
   sessionId: any;
+  finalScore: any,
   ws: any;
 }
 

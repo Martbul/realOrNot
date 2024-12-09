@@ -57,6 +57,7 @@ func (sgm *StreakGameMatchmaker) RunStreakGameSession(sess *streakGameSession.St
 	var score int
 
 	rightGuess := true
+	roundCount := 1
 
 	for rightGuess {
 
@@ -68,7 +69,7 @@ func (sgm *StreakGameMatchmaker) RunStreakGameSession(sess *streakGameSession.St
 
 		if sess.Player.Conn != nil {
 			sess.Player.Conn.WriteJSON(map[string]interface{}{
-				"round":     round,
+				"round":     roundCount,
 				"message":   fmt.Sprintf("Round %d is starting now!"),
 				"roundData": round,
 			})
@@ -122,6 +123,7 @@ func (sgm *StreakGameMatchmaker) RunStreakGameSession(sess *streakGameSession.St
 				break
 			}
 		}
+		roundCount++
 	}
 
 	sgm.EndStreakGameSession(sess, score, dbConn)

@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -19,25 +20,22 @@ func GetRound(db *sqlx.DB) (types.Round, error) {
 
 	query := `
     SELECT img_1_url, img_2_url, correct
-    FROM (
-        SELECT DISTINCT img_1_url, img_2_url, correct
-        FROM rounds
-    ) subquery
+    FROM rounds
     ORDER BY RANDOM()
     LIMIT 1;
 `
-	err := db.Select(&round, query)
+
+	err := db.Get(&round, query) // Use db.Get for a single row
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			log.Warn("No rounds found in the database")
-			return types.Round{}, nil
+			return types.Round{}, nil // Return nil for empty result
 		}
-		log.Error("Failed to fetch random rounds: ", err)
+		log.Error("Failed to fetch random round: ", err)
 		return types.Round{}, err
 	}
 
-	log.Info("Random rounds fetched successfully")
-
+	log.Info("Random round fetched successfully")
 	return round, nil
 }
 

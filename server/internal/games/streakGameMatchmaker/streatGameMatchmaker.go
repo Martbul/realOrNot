@@ -9,6 +9,7 @@ import (
 	"github.com/martbul/realOrNot/internal/db"
 	"github.com/martbul/realOrNot/internal/games/streakGameSession"
 	"github.com/martbul/realOrNot/internal/types"
+	"github.com/martbul/realOrNot/pkg/logger"
 )
 
 type StreakGameMatchmaker struct {
@@ -21,16 +22,38 @@ func NewStreakGameMatchmaker() *StreakGameMatchmaker {
 	}
 }
 
-func (sgm *StreakGameMatchmaker) LoadingStreakGame(player *types.Player, dbConn *sqlx.DB) *streakGameSession.StreakGameSession {
+func (sgm *StreakGameMatchmaker) LoadingStreakGame(player *types.Player, dbConn *sqlx.DB) (*streakGameSession.StreakGameSession, error) {
+
+	log := logger.GetLogger()
+	if err := player.Conn.WriteJSON(map[string]string{
+		"status":  "Loading",
+		"message": "Loading resources. Game starts soon...",
+	}); err != nil {
+		log.Error("Error sending queue status to player:", err)
+		return nil, err
+	}
+
 	newStreakGameSession := streakGameSession.NewStreakGameSession(player)
 	sgm.Sessions[newStreakGameSession.ID] = newStreakGameSession
 
-	go sgm.RunStreakGameSession(newStreakGameSession, dbConn)
+	//go sgm.RunStreakGameSession(newStreakGameSession, dbConn)
+	sgm.RunStreakGameSession(newStreakGameSession, dbConn)
 
-	return newStreakGameSession
+	return newStreakGameSession, nil
 }
 
 func (sgm *StreakGameMatchmaker) RunStreakGameSession(sess *streakGameSession.StreakGameSession, dbConn *sqlx.DB) {
+	fmt.Println("here3")
+
+	if sess.Player.Conn != nil {
+		sess.Player.Conn.WriteJSON(map[string]string{
+			"status":  "game_start",
+			"message": "The game is starting now!",
+			"session": sess.ID,
+		})
+
+	}
+
 	var score int
 
 	rightGuess := true
@@ -46,7 +69,7 @@ func (sgm *StreakGameMatchmaker) RunStreakGameSession(sess *streakGameSession.St
 		if sess.Player.Conn != nil {
 			sess.Player.Conn.WriteJSON(map[string]interface{}{
 				"round":     round,
-				"message":   fmt.Sprintf("Round %d is starting now!", round),
+				"message":   fmt.Sprintf("Round %d is starting now!"),
 				"roundData": round,
 			})
 		}
@@ -105,6 +128,7 @@ func (sgm *StreakGameMatchmaker) RunStreakGameSession(sess *streakGameSession.St
 }
 
 func (sgm *StreakGameMatchmaker) EndStreakGameSession(sess *streakGameSession.StreakGameSession, score int, dbConn *sqlx.DB) {
+	fmt.Println("here4")
 	delete(sgm.Sessions, sess.ID) // Remove session from in-memory storage
 
 	//db.AddPlayerWin(dbConn, w)

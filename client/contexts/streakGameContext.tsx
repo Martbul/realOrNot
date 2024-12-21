@@ -10,6 +10,7 @@ const StreakGameContext = createContext<StreakGameContextType>({
 		player: null,
 		score: 0,
 		sessionId: null,
+		finalScore: null,
 		roundData: {},
 		ws: null,
 	},
@@ -24,6 +25,7 @@ export function StreakGameContextWrapper({ children }: { children: React.ReactNo
 		player: null,
 		score: 0,
 		sessionId: null,
+		finalScore: null,
 		ws: null,
 	});
 

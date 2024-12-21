@@ -53,7 +53,7 @@ export const joinGame = (userId: string, game: Game, setGame: any) => {
 
 
 
-export const playStreakGame = (userId: string, game: StreakGame, setGame: any) => {
+export const playStreakGame = (userId: string, game: StreakGame, setStreakGame: any) => {
 	return new Promise((resolve, reject) => {
 		const socket = new WebSocket(URL + "/game/playStreak");
 
@@ -66,12 +66,15 @@ export const playStreakGame = (userId: string, game: StreakGame, setGame: any) =
 			try {
 				const message = JSON.parse(event.data);
 
-				if (message.status === "queued") {
-				} else if (message.status === "game_found") {
-					resolve(message.session)
+				if (message.status === "Loading") {
+					console.log("Loading status", message);
 				} else if (message.status === "game_start") {
+					resolve(message.session)
+					console.log("gameStart", message);
 				} else if (message.round) {
-					setGame((prevGame: Game) => ({
+
+					console.log("gameRound", message);
+					setStreakGame((prevGame: StreakGame) => ({
 						...prevGame,
 						currentRound: message.round,
 						roundData: message.roundData,
@@ -79,7 +82,7 @@ export const playStreakGame = (userId: string, game: StreakGame, setGame: any) =
 					}));
 				} else if (message.status === "game_end") {
 					console.log("Game ended:", message);
-					setGame((prevGame: Game) => ({
+					setStreakGame((prevGame: StreakGame) => ({
 						...prevGame,
 						winners: message.winners
 					}));

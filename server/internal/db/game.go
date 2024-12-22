@@ -72,6 +72,42 @@ func GetRandomRounds(db *sqlx.DB) ([]types.Round, error) {
 	return rounds, nil
 }
 
+func GetPinPointSPRoundData(db *sqlx.DB) ([]types.PinPointRoundData, error) {
+
+	log := logger.GetLogger()
+
+	if db == nil {
+		return nil, fmt.Errorf("db is nill in pinPointsSP")
+	}
+
+	var gameRoundsData []types.PinPointRoundData
+
+	query := `
+    SELECT img_url, x, y, wigth, height
+    FROM (
+        SELECT DISTINCT img_url, x, y, wigth, height
+        FROM pinpointimages
+    ) subquery
+    ORDER BY RANDOM()
+    LIMIT 10;
+`
+
+	err := db.Select(&gameRoundsData, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Warn("No rounds found in the database")
+			return nil, nil
+		}
+		log.Error("Failed to fetch game rounds data: ", err)
+		return nil, err
+	}
+
+	log.Info("Random rounds fetched successfully")
+
+	return gameRoundsData, nil
+
+}
+
 func AddPlayerWin(db *sqlx.DB, userID string) error {
 	if db == nil {
 		return fmt.Errorf("db is nil in AddWin")

@@ -1,12 +1,14 @@
 package game
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
 	"github.com/martbul/realOrNot/internal/games/duelMatchmaker"
+	pinPointSPGameMatchmaker "github.com/martbul/realOrNot/internal/games/pinPointMatchmaker"
 	"github.com/martbul/realOrNot/internal/games/streakGameMatchmaker"
 	"github.com/martbul/realOrNot/internal/types"
 	"github.com/martbul/realOrNot/pkg/logger"
@@ -151,5 +153,26 @@ func PlayStreak(streatGameMM *streakGameMatchmaker.StreakGameMatchmaker, dbConn 
 		log.Info("Closing WebSocket connection for player:", player.ID)
 		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		conn.Close()
+	}
+}
+
+func PlayPinPointSP(pinPointSPMM *pinPointSPGameMatchmaker.PinPointSPGameMatchmaker, dbConn *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		gameData, err := pinPointSPMM.StartPinPointSPGame(dbConn)
+		if err != nil {
+			//WARN: Add error handling
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string][]types.PinPointRoundData{
+			"gameData": gameData,
+		})
+
+	}
+}
+
+func EvaluatePinPointSPResult(pinPointSPMM *pinPointSPGameMatchmaker.PinPointSPGameMatchmaker, dbConn *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
 	}
 }

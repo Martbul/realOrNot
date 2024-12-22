@@ -15,6 +15,7 @@ import (
 	"github.com/martbul/realOrNot/internal/api/v1/user"
 	"github.com/martbul/realOrNot/internal/db"
 	"github.com/martbul/realOrNot/internal/games/duelMatchmaker"
+	pinPointSPGameMatchmaker "github.com/martbul/realOrNot/internal/games/pinPointMatchmaker"
 	"github.com/martbul/realOrNot/internal/games/streakGameMatchmaker"
 	"github.com/martbul/realOrNot/pkg/logger"
 )
@@ -44,9 +45,10 @@ func main() {
 	// Move to config dir
 	duelMM := duelMatchmaker.NewDuelMatchmaker(2)
 	streakGameMM := streakGameMatchmaker.NewStreakGameMatchmaker()
+	pinPointSPGameMM := pinPointSPGameMatchmaker.NewPinPointSPGameMatchmaker()
 	api := surveMux.PathPrefix("").Subrouter()
 	user.RegisterUserRoutes(api, dbConn)
-	game.RegisterGameRoutes(api, duelMM, streakGameMM, dbConn)
+	game.RegisterGameRoutes(api, duelMM, streakGameMM, pinPointSPGameMM, dbConn)
 	stats.RegisterStatsRoutes(api, dbConn)
 
 	cors := gohandlers.CORS(
@@ -64,7 +66,6 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	// Run the server in a separate goroutine
 	go func() {
 		log.Info("Starting server on port 8080")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

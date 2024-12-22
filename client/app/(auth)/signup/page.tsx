@@ -24,6 +24,7 @@ type SignUpFormData = {
   email: string;
   password: string;
 };
+
 const SignUp = () => {
   const router = useRouter();
   const { setUser } = useAuthContext();
@@ -50,43 +51,47 @@ const SignUp = () => {
 
   return (
     <div className="grid h-screen w-full grid-cols-1 md:grid-cols-2">
-      <div className="flex flex-col items-center justify-center bg-zinc-800 p-8">
+      {/* Left Panel */}
+      <div className="relative flex flex-col items-center justify-center bg-zinc-800 p-8">
         <Card className="gradborder w-full max-w-md bg-zinc-900 shadow-lg">
           <CardHeader className="space-y-1 text-neutral-200">
-            <CardTitle className="text-2xl">Sign Up</CardTitle>
+            <CardTitle className="text-3xl font-bold">Sign Up</CardTitle>
             <CardDescription>
               Start exploring our Formula 1 world today!
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <CardContent className="grid gap-4">
+            <CardContent className="grid gap-6">
+              {/* Social Buttons */}
               <div className="grid grid-cols-2 gap-6">
-                <Button variant="outline">
+                <Button variant="outline" className="flex items-center">
                   <GithubIcon className="mr-2 h-4 w-4" />
                   Github
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" className="flex items-center">
                   <ChromeIcon className="mr-2 h-4 w-4" />
                   Google
                 </Button>
               </div>
+              {/* Divider */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  <span className="w-full border-t border-neutral-600" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-zinc-900 px-2 text-neutral-200">
+                  <span className="bg-zinc-900 px-2 text-neutral-400">
                     Or continue with email
                   </span>
                 </div>
               </div>
+              {/* Form Fields */}
               <div className="grid gap-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   type="text"
                   placeholder="John Doe"
-                  className="border border-gray-950 p-2"
+                  className="border border-neutral-700 bg-zinc-800 p-2 text-neutral-200 placeholder-neutral-500"
                   {...register("username", {
                     required: "Username is required",
                   })}
@@ -103,7 +108,7 @@ const SignUp = () => {
                   id="email"
                   type="email"
                   placeholder="example@email.com"
-                  className="border border-gray-950 p-2"
+                  className="border border-neutral-700 bg-zinc-800 p-2 text-neutral-200 placeholder-neutral-500"
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
@@ -122,7 +127,7 @@ const SignUp = () => {
                   id="password"
                   type="password"
                   placeholder="mysecretpass"
-                  className="border border-gray-950 p-2"
+                  className="border border-neutral-700 bg-zinc-800 p-2 text-neutral-200 placeholder-neutral-500"
                   {...register("password", {
                     required: "Password is required",
                     minLength: {
@@ -146,7 +151,7 @@ const SignUp = () => {
             <CardFooter>
               <Button
                 type="submit"
-                className="w-full border border-black bg-zinc-950 text-white hover:bg-zinc-700"
+                className="w-full bg-zinc-800 text-white hover:bg-zinc-700"
                 disabled={isPending}
               >
                 {isPending ? (
@@ -157,12 +162,12 @@ const SignUp = () => {
               </Button>
             </CardFooter>
           </form>
-          <div className="mb-4 text-center">
-            <p className="text-sm text-muted-foreground text-neutral-200">
+          <div className="mt-4 text-center">
+            <p className="text-sm text-neutral-400">
               Already have an account?{" "}
               <Link
                 href="/signin"
-                className="font-medium underline"
+                className="font-medium underline text-primary"
                 prefetch={false}
               >
                 Sign in
@@ -171,24 +176,25 @@ const SignUp = () => {
           </div>
         </Card>
       </div>
-      <div className="flex flex-col items-center justify-center bg-zinc-950 p-8">
-        <div className="max-w-md space-y-4">
+      {/* Right Panel */}
+      <div className="relative flex flex-col items-center justify-center bg-zinc-950 p-8">
+        <div className="absolute inset-0 h-px bg-neutral-600"></div>
+        <div className="z-10 max-w-md space-y-4">
           <h1 className="text-4xl font-bold text-zinc-200">Formula Fan</h1>
-          <p className="text-lg text-gray-300">
-            Enjoy the world of Formula 1 from another angle
+          <p className="text-lg text-gray-400">
+            Enjoy the world of Formula 1 from another angle.
           </p>
           <div className="flex gap-4">
             <Button
               onClick={() => router.replace("/posts")}
               variant="outline"
-              className="text-primary-foreground hover:bg-neutral-400"
+              className="text-primary hover:bg-neutral-700"
             >
               Continue as Guest
             </Button>
-
             <Link
-              className="flex items-center rounded-md bg-zinc-800 p-2 text-sm font-medium text-gray-200 hover:bg-neutral-600"
               href="/login"
+              className="flex items-center rounded-md bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-600"
             >
               Sign In Now
             </Link>

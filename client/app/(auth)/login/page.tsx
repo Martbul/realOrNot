@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-//import { AnimatedCircleIcon, ChromeIcon, GithubIcon } from "@/utils/svgIcons";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/authContext";
@@ -23,6 +22,7 @@ type SignInFormData = {
 	email: string;
 	password: string;
 };
+
 const Login = () => {
 	const router = useRouter();
 	const { setUser } = useAuthContext();
@@ -49,144 +49,110 @@ const Login = () => {
 	};
 
 	return (
-		<div className="grid h-screen w-full grid-cols-1 md:grid-cols-2">
-			<div className="flex flex-col items-center justify-center bg-zinc-950 p-8">
-				<div className="max-w-md space-y-4">
-					<h1 className="text-4xl font-bold text-zinc-200">Formula Fan</h1>
-					<p className="text-lg text-gray-300">
-						Enjoy the world of Formula 1 from anothr angle
+		<div className="relative grid h-screen w-full grid-cols-1 md:grid-cols-2 bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
+			{/* Left Side */}
+			<div className="flex flex-col items-center justify-center p-8">
+				<div className="max-w-md space-y-4 text-center">
+					<h1 className="text-5xl font-extrabold text-white">Formula Fan</h1>
+					<p className="text-lg text-gray-400">
+						Dive deeper into the world of Formula 1 with a fresh perspective.
 					</p>
-					<div className="flex gap-4">
+					<div className="flex gap-4 mt-6">
 						<Button
 							onClick={() => router.replace("/posts")}
 							variant="outline"
-							className="text-primary-foreground hover:bg-neutral-400"
+							className="text-white border-white hover:bg-gray-700"
 						>
 							Continue as Guest
 						</Button>
-
 						<Link
-							className="flex items-center rounded rounded-md bg-zinc-800 p-2 text-sm font-medium text-gray-200 hover:bg-neutral-600"
 							href="/signup"
+							className="flex items-center rounded-md bg-gray-700 px-4 py-2 text-sm font-medium hover:bg-gray-600"
 						>
 							Sign Up Now
 						</Link>
 					</div>
 				</div>
 			</div>
-			<div className="flex flex-col items-center justify-center bg-white p-8">
-				<Card className="w-full max-w-md shadow-lg">
+
+			{/* Line Divider */}
+			<div className="absolute inset-y-0 left-1/2 w-0.5 bg-gray-600 md:block"></div>
+
+			{/* Right Side */}
+			<div className="flex flex-col items-center justify-center p-8">
+				<Card className="w-full max-w-md bg-gray-800 text-white shadow-lg shadow-black/50">
 					<CardHeader className="space-y-1">
-						<CardTitle className="text-2xl">Login</CardTitle>
-						<CardDescription>
-							Continue exploring our Formula 1 world today!
+						<CardTitle className="text-2xl font-semibold">Login</CardTitle>
+						<CardDescription className="text-gray-400">
+							Start exploring our Formula 1 world now!
 						</CardDescription>
 					</CardHeader>
 					<form onSubmit={handleSubmit(onSubmit)}>
-						<CardContent className="grid gap-4">
-							<div className="grid grid-cols-2 gap-6">
-
-								{/*
-
-
-								<Button variant="outline">
-									<GithubIcon className="mr-2 h-4 w-4" />
-									Github
-								</Button>
-								<Button variant="outline">
-									<ChromeIcon className="mr-2 h-4 w-4" />
-									Google
-								</Button>
-	
-    */}
-							</div>
-							<div className="relative">
-								<div className="absolute inset-0 flex items-center">
-									<span className="w-full border-t" />
+						<CardContent className="grid gap-6">
+							<div className="grid gap-4">
+								<div className="grid gap-2">
+									<Label htmlFor="email" className="text-lg font-medium">
+										Email Address
+									</Label>
+									<Input
+										id="email"
+										type="email"
+										placeholder="example@email.com"
+										className="border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-red-500"
+										{...register("email", {
+											required: "Email is required",
+											pattern: {
+												value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/,
+												message: "Invalid email address",
+											},
+										})}
+									/>
+									{errors.email && (
+										<span className="text-red-500">{errors.email.message}</span>
+									)}
 								</div>
-								<div className="relative flex justify-center text-xs uppercase">
-									<span className="bg-background px-2 text-muted-foreground">
-										Or continue with email
-									</span>
+								<div className="grid gap-2">
+									<Label htmlFor="password" className="text-lg font-medium">
+										Password
+									</Label>
+									<Input
+										id="password"
+										type="password"
+										placeholder="mysecretpass"
+										className="border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-red-500"
+										{...register("password", {
+											required: "Password is required",
+											minLength: {
+												value: 6,
+												message: "Password must be at least 6 characters long",
+											},
+										})}
+									/>
+									{errors.password && (
+										<span className="text-red-500">{errors.password.message}</span>
+									)}
 								</div>
-							</div>
-
-							<div className="grid gap-2">
-								<Label htmlFor="email">Email Address</Label>
-								<Input
-									id="email"
-									type="email"
-									placeholder="example@email.com"
-									className="border border-gray-950 p-2"
-									{...register("email", {
-										required: "Email is required",
-										pattern: {
-											value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/,
-											message: "Invalid email address",
-										},
-									})}
-								/>
-								{errors.email && (
-									<span className="text-red-600">{errors.email.message}</span>
-								)}
-							</div>
-							<div className="grid gap-2">
-								<Label htmlFor="password">Password</Label>
-								<Input
-									id="password"
-									type="password"
-									placeholder="mysecretpass"
-									className="border border-gray-950 p-2"
-									{...register("password", {
-										required: "Password is required",
-										minLength: {
-											value: 6,
-											message: "Password must be at least 6 characters long",
-										},
-									})}
-								/>
-								{errors.password && (
-									<span className="text-red-600">
-										{errors.password.message}
-									</span>
-								)}
 							</div>
 						</CardContent>
 						{isError && (
-							<div className="mb-4 flex justify-center px-8 font-bold text-red-600">
+							<div className="mb-4 text-center text-red-500">
 								<p>{error.message}</p>
 							</div>
 						)}
 						<CardFooter>
 							<Button
 								type="submit"
-								className="w-full border border-black bg-zinc-950 text-white hover:bg-zinc-700"
+								className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white hover:bg-red-400"
 								disabled={isPending}
-
 							>
-
-								{/* 
-
-    	{isPending ? (
-									<AnimatedCircleIcon className="h-9 w-9" />
-								) : (
-									"Sing In"
-								)}
-							<*/}
-								Login
-
+								{isPending ? "Logging in..." : "Login"}
 							</Button>
 						</CardFooter>
 					</form>
-
-					<div className="mb-4 text-center">
-						<p className="text-sm text-muted-foreground">
+					<div className="mt-4 text-center">
+						<p className="text-sm text-gray-400">
 							Don't have an account?{" "}
-							<Link
-								href="/signup"
-								className="font-medium underline"
-								prefetch={false}
-							>
+							<Link href="/signup" className="font-medium underline text-white">
 								Sign up
 							</Link>
 						</p>

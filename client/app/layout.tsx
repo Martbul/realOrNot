@@ -6,6 +6,7 @@ import { AuthContextWrapper } from "@/contexts/authContext";
 import { GameContextWrapper } from "@/contexts/gameContext";
 import Provider from "@/utils/Provider";
 import { StreakGameContextWrapper } from "@/contexts/streakGameContext";
+import ErrorBoundary from "@/components/errorBoundary/ErrorBoundary";
 
 // Define custom fonts
 const geistSans = localFont({

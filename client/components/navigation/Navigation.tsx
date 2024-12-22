@@ -1,10 +1,10 @@
-import React from 'react';
 
 import { useAuthContext } from '@/contexts/authContext';
 import { logout } from '@/services/auth/auth.service';
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { UserProfileIcon } from '@/utils/svgIcons';
+import Link from 'next/link';
 
 const CaretIcon = () => (
 	<svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -51,7 +51,7 @@ const MenuDropdownItem = ({
 	</a>
 );
 
-const UserDropdown: React.FC<{ setUser: (user: null) => void }> = ({ setUser }) => {
+const UserDropdown = ({ setUser, user }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +64,8 @@ const UserDropdown: React.FC<{ setUser: (user: null) => void }> = ({ setUser }) 
 				onClick={() => setIsOpen(!isOpen)}
 			>
 				<UserProfileIcon className="h-8 w-8" />
-				<span className="text-sm font-semibold text-white">Player Name</span>
+				<span className="text-sm font-semibold text-white">{user.username}</span>
+
 				<CaretIcon />
 			</button>
 			{isOpen && (
@@ -132,7 +133,7 @@ const Navigation: React.FC = () => {
 				</div>
 
 				{/* Desktop Navigation */}
-				<div className="hidden md:flex space-x-6 items-center">
+				<div className="hidden md:flex space-x-24 items-center">
 					{/* Singleplayer Dropdown */}
 					<Dropdown title="Singleplayer">
 						<MenuDropdownItem
@@ -141,6 +142,14 @@ const Navigation: React.FC = () => {
 							title="Streak"
 							description="Travel around the world!"
 						/>
+
+						<MenuDropdownItem
+							href="/singleplayer/pinpoint"
+							imgSrc="/map.png"
+							title="PinPoint"
+							description="Guess what has been AI generated!"
+						/>
+
 					</Dropdown>
 
 					{/* Multiplayer Dropdown */}
@@ -176,11 +185,25 @@ const Navigation: React.FC = () => {
 					</Dropdown>
 				</div>
 
-				{/* User Dropdown (Desktop) */}
-				<div className="hidden md:block">
-					<UserDropdown setUser={setUser} />
-				</div>
 
+				{user.username ? (
+					<div className="hidden md:block">
+						<UserDropdown setUser={setUser} user={user} />
+					</div>
+				) : (
+					<Link href="/login">
+
+						<button
+							className="bg-indigo-950 text-white px-4 py-2 rounded"
+						>
+							Login
+						</button>
+
+
+
+					</Link>
+
+				)}
 				{/* Mobile Menu Toggle */}
 				<button
 					className="md:hidden flex items-center text-white focus:outline-none"
@@ -212,7 +235,7 @@ const Navigation: React.FC = () => {
 						>
 							<UserProfileIcon className="h-10 w-10" />
 							<div>
-								<p className="text-white font-semibold">{user?.name || 'Player Name'}</p>
+								<p className="text-white font-semibold">{user?.username || 'Player Name'}</p>
 								<p className="text-gray-400 text-xs">{user?.email || 'player@example.com'}</p>
 							</div>
 							<CaretIcon />

@@ -1,9 +1,7 @@
-//const url = "http://localhost:8080/user"
 const URL = process.env.NEXT_PUBLIC_LOCAL_SERVER_URL;
-// authService.js
 export const login = async (email: string, password: string, setUser: Function) => {
 	try {
-		const response = await fetch(URL + "/login", {
+		const response = await fetch(URL + "/user/login", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -18,10 +16,11 @@ export const login = async (email: string, password: string, setUser: Function) 
 
 		const data = await response.json();
 
-		setUser(data.id); // Update user in context
-		localStorage.setItem("accessToken", data.accessToken); // Temporary storage (optional)
-		localStorage.setItem("userId", data.id); // Update access token
-		localStorage.setItem("refreshToken", data.refreshToken); // Update access token
+		setUser({ id: data.id, username: data.username });
+		localStorage.setItem("accessToken", data.accessToken);
+		localStorage.setItem("userId", data.id);
+		localStorage.setItem("username", data.username);
+		localStorage.setItem("refreshToken", data.refreshToken);
 
 		return data;
 	} catch (error) {
@@ -30,29 +29,14 @@ export const login = async (email: string, password: string, setUser: Function) 
 	}
 };
 
-export const logout = async (setUser: Function) => {
-	try {
-		await fetch(apiUrl + "/logout", {
-			method: "POST",
-			//			credentials: "include", // Clear HTTP-only cookies
-		});
-
-		setUser(null); // Clear user context
-		localStorage.removeItem("accessToken"); // Optional: Clear any stored tokens
-	} catch (error) {
-		console.error("Failed to log out:", error);
-		throw error;
-	}
-};
-
 export const refreshToken = async () => {
 	try {
-		const refreshToken = localStorage.getItem("refreshToken"); // Get refresh token from storage
+		const refreshToken = localStorage.getItem("refreshToken");
 		if (!refreshToken) {
 			throw new Error("No refresh token found.");
 		}
 
-		const response = await fetch(apiUrl + "/user/refresh-token", {
+		const response = await fetch(URL + "/user/refresh-token", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -82,7 +66,7 @@ export const signup = async (
 	setUser: (user: User | null) => void
 ) => {
 	try {
-		const response = await fetch(URL + "/signup", {
+		const response = await fetch(URL + "/user/signup", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -98,10 +82,9 @@ export const signup = async (
 		const data = await response.json();
 		console.log("Signup successful:", data);
 
-		// Update user in context
-		setUser({ id: data.id }); // Set the user based on the response, assuming `data.id` is the unique identifier
+		setUser({ id: data.id, username: data.username });
 
-		// Optionally store an access token and userId for session restoration
+		localStorage.setItem("username", data.username);
 		localStorage.setItem("accessToken", data.accessToken);
 		localStorage.setItem("userId", data.id);
 		localStorage.setItem("refreshToken", data.refreshToken);

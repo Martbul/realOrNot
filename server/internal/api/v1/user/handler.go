@@ -138,6 +138,7 @@ func SignupUser(db *sqlx.DB) http.HandlerFunc {
 			"refreshToken": refreshToken,
 			"id":           user.Id,
 			"email":        user.Email,
+			"username":     user.UserName,
 		})
 	}
 }
@@ -182,6 +183,7 @@ func LoginUser(db *sqlx.DB) http.HandlerFunc {
 			"refreshToken": refreshToken,
 			"id":           user.Id,
 			"email":        user.Email,
+			"username":     user.UserName,
 		})
 	}
 }

@@ -1,6 +1,7 @@
-import Image from "next/image";
-import Link from "next/link";
+"use client"
+
 import Navigation from "@/components/navigation/Navigation";
+import Link from "next/link";
 
 export default function HowToPlay() {
   return (

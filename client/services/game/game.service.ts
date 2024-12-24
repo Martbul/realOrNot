@@ -106,3 +106,61 @@ export const playStreakGame = (userId: string, game: StreakGame, setStreakGame: 
 		};
 	});
 };
+
+export const getPinPointGameData = async () => {
+	try {
+		const response = await fetch(URL + "/game/getPinPointRoundData", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+
+			},
+
+		})
+
+		if (!response.ok) {
+			throw new Error("FAiled to get pinpointsp data")
+		}
+
+		const data = await response.json()
+
+		return data
+
+	} catch (error) {
+		console.error(error)
+		throw error;
+	}
+
+}
+
+export const login = async (email: string, password: string, setUser: Function) => {
+	try {
+		const response = await fetch(URL + "/user/login", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ email, password }),
+			//			credentials: "include", // Ensures cookies are sent/received
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to login. Please check your credentials.");
+		}
+
+		const data = await response.json();
+
+		setUser({ id: data.id, username: data.username });
+		localStorage.setItem("accessToken", data.accessToken);
+		localStorage.setItem("userId", data.id);
+		localStorage.setItem("username", data.username);
+		localStorage.setItem("refreshToken", data.refreshToken);
+
+		return data;
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
+};
+
+

@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -160,8 +161,13 @@ func PlayPinPointSP(pinPointSPMM *pinPointSPGameMatchmaker.PinPointSPGameMatchma
 	return func(w http.ResponseWriter, r *http.Request) {
 		gameData, err := pinPointSPMM.StartPinPointSPGame(dbConn)
 		if err != nil {
+			fmt.Println("ERROR DKOFND")
 			//WARN: Add error handling
+			w.WriteHeader(http.StatusInternalServerError)
+
 		}
+
+		fmt.Println("debugging", gameData)
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string][]types.PinPointRoundData{

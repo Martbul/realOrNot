@@ -1,5 +1,8 @@
-'use client'; // Ensure this is a client-side component
 
+'use client';
+
+import { getPinPointGameData } from '@/services/game/game.service';
+import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -10,20 +13,33 @@ const ImageClickGame = () => {
   const [score, setScore] = useState(0);
   const imageRef = useRef<HTMLDivElement>(null);
 
+  const {
+    data: pinPointData,
+    isLoading: isPinPointSPDataLoading,
+    isError: isPinPointSPDataError,
+    error: pinPointSPDataError,
+  } = useQuery({
+    queryKey: ['pinPointSPGameData'],
+    queryFn: getPinPointGameData,
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+  });
+
   useEffect(() => {
-    const fetchedData = {
-      imageUrl: '/mustang.png', // Image in the public folder (no ../../)
-      aiRegion: {
-        x: 150,  // X-coordinate of the top-left corner of the AI region
-        y: 215,  // Y-coordinate of the top-left corner
-        width: 95,  // Width of the AI region
-        height: 70,  // Height of the AI region
-      }
+    if (!pinPointData || pinPointData.length === 0) return;
+    console.log(pinPointData)
+
+    const image = pinPointData.gameData[0].ImgURL;
+    const aiRegion = {
+      x: pinPointData.gameData[0].X,
+      y: pinPointData.gameData[0].Y,
+      width: pinPointData.gameData[0].Width,
+      height: pinPointData.gameData[0].Height, // Fixed typo
     };
 
-    setImageUrl(fetchedData.imageUrl);
-    setAiRegion(fetchedData.aiRegion);
-  }, []);
+    setImageUrl(image);
+    setAiRegion(aiRegion);
+  }, [pinPointData]);
 
   const checkProximity = (clickX: number, clickY: number) => {
     if (
@@ -32,12 +48,11 @@ const ImageClickGame = () => {
       clickY >= aiRegion.y &&
       clickY <= aiRegion.y + aiRegion.height
     ) {
-      return 100; // Full score for hitting AI-generated part
+      return 100;
     }
-    return 0; // No match
+    return 0;
   };
 
-  // Handle click on image
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (imageRef.current) {
       const rect = imageRef.current.getBoundingClientRect();
@@ -51,6 +66,9 @@ const ImageClickGame = () => {
     }
   };
 
+  if (isPinPointSPDataLoading) return <div>Loading...</div>;
+  if (isPinPointSPDataError) return <div>Error: {pinPointSPDataError.message}</div>;
+
   return (
     <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Click on the AI-Generated Parts!</h1>
@@ -60,23 +78,12 @@ const ImageClickGame = () => {
           <Image
             src={imageUrl}
             alt="Game"
-            width={500} // Specify fixed width
-            height={500} // Specify fixed height
+            width={500}
+            height={500}
             className="rounded-lg shadow-md border-2 border-gray-300"
           />
         )}
 
-        {aiRegion && (
-          <div
-            className="absolute bg-blue-500 bg-opacity-50 pointer-events-none"
-            style={{
-              top: aiRegion.y,
-              left: aiRegion.x,
-              width: aiRegion.width,
-              height: aiRegion.height,
-            }}
-          />
-        )}
 
         {clickCoords && (
           <div
@@ -86,7 +93,6 @@ const ImageClickGame = () => {
         )}
       </div>
 
-      {/* Display Score */}
       <div className="mt-6 text-xl text-gray-700">
         <p>
           <span className="font-semibold">Score:</span> {score}

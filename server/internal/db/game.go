@@ -83,9 +83,9 @@ func GetPinPointSPRoundData(db *sqlx.DB) ([]types.PinPointRoundData, error) {
 	var gameRoundsData []types.PinPointRoundData
 
 	query := `
-    SELECT img_url, x, y, wigth, height
+    SELECT image_url, x, y, width, height
     FROM (
-        SELECT DISTINCT img_url, x, y, wigth, height
+        SELECT DISTINCT image_url, x, y, width, height
         FROM pinpointimages
     ) subquery
     ORDER BY RANDOM()

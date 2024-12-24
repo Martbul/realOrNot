@@ -18,7 +18,7 @@ type Round struct {
 }
 
 type PinPointRoundData struct {
-	ImgURL string `db:"img_url"`
+	ImgURL string `db:"image_url"`
 	X      int    `db:"x"`
 	Y      int    `db:"y"`
 	Width  int    `db:"width"`

@@ -21,6 +21,7 @@ func (ppm *PinPointSPGameMatchmaker) StartPinPointSPGame(dbConn *sqlx.DB) ([]typ
 		return nil, fmt.Errorf("Could not get rounds for pinpointsgame")
 	}
 
+	fmt.Println("TESTING ROUNDS EXISTANE", gameRoundsData)
 	return gameRoundsData, nil
 
 }

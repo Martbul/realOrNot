@@ -1,9 +1,5 @@
 const URL = process.env.NEXT_PUBLIC_LOCAL_SERVER_URL;
-const url = "http://localhost:8080"
-console.log(URL)
 export const getLeaderboard = async () => {
-
-	console.log("getting leaderboard")
 	try {
 		const response = await fetch(URL + "/stats/leaderboard", {
 			method: "GET",
@@ -17,7 +13,6 @@ export const getLeaderboard = async () => {
 		}
 
 		const data = await response.json();
-		console.log(data)
 
 		return data;
 	} catch (error) {

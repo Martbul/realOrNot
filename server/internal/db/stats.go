@@ -8,47 +8,40 @@ import (
 
 func GetWinsLeaderboard(db *sqlx.DB) ([]map[string]interface{}, error) {
 	if db == nil {
-		return nil, fmt.Errorf("Unable to get winsLeaderboard: db is nil")
+		return nil, fmt.Errorf("Unable to get wins leaderboard: db is nil")
 	}
 
+	// Structure to hold the leaderboard data
 	var leaderboard []struct {
-		UserID    string `db:"user_id"`
-		TotalWins int    `db:"total_wins"`
+		ID       string `db:"id"`
+		Username string `db:"username"`
+		DuelWins int    `db:"duelwins"`
 	}
 
+	// Query to get the top 20 users by duel wins from the users table
 	query := `
-		SELECT user_id, total_wins 
-		FROM winsleaderboard 
-		ORDER BY total_wins DESC 
+		SELECT id, username, duelwins 
+		FROM users 
+		ORDER BY duelwins DESC 
 		LIMIT 20
 	`
+
 	err := db.Select(&leaderboard, query)
 	if err != nil {
 		fmt.Printf("Query execution failed: %v\n", err)
 		return nil, fmt.Errorf("Failed to retrieve leaderboard: %w", err)
 	}
 
+	// Convert leaderboard data into a slice of maps
 	var results []map[string]interface{}
-	fmt.Println(leaderboard)
 	for _, entry := range leaderboard {
-		var user struct {
-			ID       string `db:"id"`
-			Username string `db:"username"`
-		}
-
-		userQuery := `SELECT id, username FROM users WHERE id = $1`
-		err := db.Get(&user, userQuery, entry.UserID)
-		if err != nil {
-			continue
-		}
-
 		userMap := map[string]interface{}{
-			"id":       user.ID,
-			"username": user.Username,
-			"wins":     entry.TotalWins,
+			"id":       entry.ID,
+			"username": entry.Username,
+			"duelwins": entry.DuelWins,
 		}
-
 		results = append(results, userMap)
 	}
+
 	return results, nil
 }

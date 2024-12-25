@@ -1,9 +1,3 @@
-
-
-
-
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -39,12 +33,14 @@ export default function Home() {
   const router = useRouter();
   const [isWaiting, setIsWaiting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isClient, setIsClient] = useState(false); // Flag to check if we're on the client side
+  const [isClient, setIsClient] = useState(false);
 
   console.log("User from context in Home:", user); // Debugging line
   useEffect(() => {
     console.log("User in Home after context update:", user);
   }, [user]);
+
+
   const {
     data: leaderboardData,
     isLoading: isLeaderboardLoading,
@@ -56,6 +52,7 @@ export default function Home() {
     staleTime: 1000 * 60 * 5,
     retry: 3,
   });
+
 
   const {
     mutate: joinGameMutation,
@@ -83,7 +80,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Set isClient to true when the component mounts to ensure client-side rendering
     setIsClient(true);
 
     const interval = setInterval(() => {
@@ -92,8 +88,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  if (!isClient) return null; // Prevent rendering on the server side
-  //
+  if (!isClient) return null;
 
   return (
     <section className="flex flex-col bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white ">
@@ -144,9 +139,7 @@ export default function Home() {
             </Card>
           </div>
 
-          {/* Image carousel and dots navigation below the cards */}
           <div className="relative w-full max-w-4xl mx-auto overflow-hidden rounded-lg shadow-lg mt-10">
-            {/* Slides container */}
             <div
               className="flex transition-transform duration-700 ease-in-out"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -164,7 +157,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Navigation dots */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
               {images.map((_, index) => (
                 <button
@@ -184,12 +176,11 @@ export default function Home() {
 
         </div>
 
-        {/* Leaderboard Section */}
         <section className="w-full">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold">REALorNOT Leaderboard</h1>
+            <h1 className="text-4xl font-bold">Duels Leaderboard</h1>
             <p className="text-lg text-gray-400 mt-2">
-              See who’s leading the game!
+              Who is the best dueler!
             </p>
           </div>
 
@@ -211,7 +202,7 @@ export default function Home() {
                       <h2 className="text-3xl font-bold">
                         #{index + 1} {player.username}
                       </h2>
-                      <p className="text-xl font-medium mt-2">{player.wins} Wins</p>
+                      <p className="text-xl font-medium mt-2">{player.duelwins} Wins</p>
                     </div>
                   ))}
                 </div>
@@ -227,7 +218,7 @@ export default function Home() {
                       className="py-2 flex justify-between items-center"
                     >
                       <span className="text-lg">{player.username}</span>
-                      <span className="text-sm text-gray-400">{player.wins} Wins</span>
+                      <span className="text-sm text-gray-400">{player.duelwins} Wins</span>
                     </li>
                   ))}
                 </ul>
@@ -237,7 +228,6 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Waiting Dialog */}
       <Dialog open={isWaiting} onOpenChange={setIsWaiting}>
         <DialogContent className="text-center bg-gray-800 text-white">
           <DialogHeader>

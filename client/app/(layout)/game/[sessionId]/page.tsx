@@ -1,11 +1,10 @@
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "@/contexts/gameContext";
 import { useAuthContext } from "@/contexts/authContext";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
-import { use } from "react"; // Import use() for unwrapping promises
+import { use } from "react";
 
 interface GamePageProps {
 	params: Promise<{
@@ -24,7 +23,6 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	const { user } = useAuthContext();
 	const router = useRouter();
 
-	// Resolve params
 	const { sessionId } = use(params);
 
 	const sendGuess = (guess: string) => {
@@ -36,16 +34,14 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	};
 
 	useEffect(() => {
-		// Reset all session-specific states
 		setStartGameTimer(5);
 		setGuessTimer(10);
 		setShowTimer(true);
 		setShowWinners(false);
 		setSelectedImage(null);
 
-		// Clear game-specific data to ensure no old state persists
 		if (game) {
-			game.winners = []; // Reset winners list
+			game.winners = [];
 		}
 	}, [sessionId]);
 
@@ -76,8 +72,8 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 		if (game.winners && game.winners.length > 0) {
 			setShowWinners(true);
 			setTimeout(() => {
-				router.push("/"); // Redirect to home page after 5 seconds
-			}, 5000); // Adjust the timeout duration as needed
+				router.push("/");
+			}, 5000);
 		}
 	}, [game.winners, router]);
 

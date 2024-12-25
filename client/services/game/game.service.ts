@@ -1,5 +1,7 @@
-const URL = process.env.NEXT_PUBLIC_LOCAL_SERVER_URL;
 import { Game, StreakGame } from "@/utils/interfaces";
+
+const URL = process.env.NEXT_PUBLIC_LOCAL_SERVER_URL;
+
 export const joinGame = (userId: string, game: Game, setGame: any) => {
 	return new Promise((resolve, reject) => {
 		const socket = new WebSocket(URL + "/game/joinDuel");
@@ -123,7 +125,6 @@ export const getPinPointGameData = async () => {
 		}
 
 		const data = await response.json()
-
 		return data
 
 	} catch (error) {
@@ -133,6 +134,49 @@ export const getPinPointGameData = async () => {
 
 }
 
+
+export const evaluatePinPointSPGameResults = async (userId: string, score: boolean[]) => {
+	try {
+		const response = await fetch(URL + "/game/pinPointSPResults", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				userId: userId,
+				score: score,
+			}),
+		});
+
+		const responseBody = await response.text();
+
+		console.log("Response body:", responseBody);
+
+		if (!responseBody) {
+			throw new Error("No response body received");
+		}
+
+		let data;
+		try {
+			data = JSON.parse(responseBody);
+		} catch (error) {
+			throw new Error("Failed to parse JSON response: " + error.message);
+		}
+
+		if (!response.ok) {
+			throw new Error("Failed to get evaluate pinPointGame result");
+		}
+
+		return data;
+
+	} catch (error) {
+		console.error("Error:", error);
+		throw error;
+	}
+};
+
+
+
 export const login = async (email: string, password: string, setUser: Function) => {
 	try {
 		const response = await fetch(URL + "/user/login", {
@@ -141,7 +185,6 @@ export const login = async (email: string, password: string, setUser: Function) 
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ email, password }),
-			//			credentials: "include", // Ensures cookies are sent/received
 		});
 
 		if (!response.ok) {

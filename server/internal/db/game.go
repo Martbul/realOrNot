@@ -108,18 +108,17 @@ func GetPinPointSPRoundData(db *sqlx.DB) ([]types.PinPointRoundData, error) {
 
 }
 
-func AddPlayerWin(db *sqlx.DB, userID string) error {
-	if db == nil {
+func AddPlayerWin(dbConn *sqlx.DB, userID string) error {
+	if dbConn == nil {
 		return fmt.Errorf("db is nil in AddWin")
 	}
 	fmt.Println("starting to add win to player:", userID)
 
-	tx, err := db.Beginx()
+	tx, err := dbConn.Beginx()
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Update winsLeaderboard table
 	queryLeaderboard := `
 		INSERT INTO winsLeaderboard (user_id, total_wins) 
 		VALUES ($1, 1)
@@ -130,7 +129,6 @@ func AddPlayerWin(db *sqlx.DB, userID string) error {
 		return fmt.Errorf("failed to update winsLeaderboard for userID %s: %w", userID, err)
 	}
 
-	// Synchronize users table
 	queryUsers := `
 		UPDATE users 
 		SET wins = (SELECT total_wins FROM winsLeaderboard WHERE user_id = $1) 
@@ -140,10 +138,19 @@ func AddPlayerWin(db *sqlx.DB, userID string) error {
 		return fmt.Errorf("failed to update users table for userID %s: %w", userID, err)
 	}
 
-	// Commit the transaction
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
+	return nil
+}
+
+func SavePinPointSPResult(dbConn *sqlx.DB, userID string, score int) error {
+	if dbConn == nil {
+		return fmt.Errorf("db is nil in AddWin")
+	}
+	fmt.Println("starting to add win to player:", userID)
+
+	//WARN: ADD A COULUMN IN USER FOR PINPOINTSP AND ADD THE POINTS FOR SOME STATS LATER TO SUE
 	return nil
 }

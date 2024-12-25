@@ -179,6 +179,25 @@ func PlayPinPointSP(pinPointSPMM *pinPointSPGameMatchmaker.PinPointSPGameMatchma
 
 func EvaluatePinPointSPResult(pinPointSPMM *pinPointSPGameMatchmaker.PinPointSPGameMatchmaker, dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.EvaluatePinPointSPRequet
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			return
+		}
 
+		fmt.Println(req.Score)
+
+		score, err := pinPointSPMM.EvaluatePinPointSPGameResults(req.UserId, req.Score, dbConn)
+		if err != nil {
+			fmt.Println("ERROR DKOFND")
+			//WARN: Add error handling
+			w.WriteHeader(http.StatusInternalServerError)
+
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]int{
+			"result": score,
+		})
 	}
 }

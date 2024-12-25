@@ -24,3 +24,8 @@ type PinPointRoundData struct {
 	Width  int    `db:"width"`
 	Height int    `db:"height"`
 }
+
+type EvaluatePinPointSPRequet struct {
+	UserId string `json:"userId"`
+	Score  []bool `json:"score"`
+}

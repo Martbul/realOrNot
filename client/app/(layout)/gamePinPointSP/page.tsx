@@ -1,18 +1,30 @@
 
+
+
+
+
 'use client';
 
-import { getPinPointGameData } from '@/services/game/game.service';
-import { useQuery } from '@tanstack/react-query';
+import { useAuthContext } from '@/contexts/authContext';
+import { evaluatePinPointSPGameResults, getPinPointGameData } from '@/services/game/game.service';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import React, { useState, useEffect, useRef } from 'react';
+import ReactConfetti from 'react-confetti';
 
+import { useRouter } from "next/navigation";
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 const ImageClickGame = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [aiRegion, setAiRegion] = useState<any>(null);
   const [clickCoords, setClickCoords] = useState<any>(null);
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState<boolean[]>([]);
+  const [currRound, setCurrRound] = useState(0);
   const imageRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuthContext();
 
+  const router = useRouter();
   const {
     data: pinPointData,
     isLoading: isPinPointSPDataLoading,
@@ -25,80 +37,133 @@ const ImageClickGame = () => {
     retry: 3,
   });
 
+  const {
+    mutate: resultEvaluationMutation,
+    data: resultsData,
+    isLoading: areResultsEvaluatingLoading,
+    isError: evaluatingResultsError,
+    error: resultsError,
+  } = useMutation({
+    mutationFn: async () => {
+      if (!user) {
+        throw new Error("User is not authenticated.");
+      }
+      return await evaluatePinPointSPGameResults(user.id, score);
+    },
+  });
+
+  // Load the initial data for the current round
   useEffect(() => {
-    if (!pinPointData || pinPointData.length === 0) return;
-    console.log(pinPointData)
-
-    const image = pinPointData.gameData[0].ImgURL;
-    const aiRegion = {
-      x: pinPointData.gameData[0].X,
-      y: pinPointData.gameData[0].Y,
-      width: pinPointData.gameData[0].Width,
-      height: pinPointData.gameData[0].Height, // Fixed typo
-    };
-
-    setImageUrl(image);
-    setAiRegion(aiRegion);
-  }, [pinPointData]);
+    if (pinPointData?.gameData?.length > currRound) {
+      const { ImgURL, X, Y, Width, Height } = pinPointData.gameData[currRound];
+      setImageUrl(ImgURL);
+      setAiRegion({ x: X, y: Y, width: Width, height: Height });
+    } else if (pinPointData?.gameData?.length === currRound) {
+      resultEvaluationMutation(); // Trigger result evaluation after the last round
+    }
+  }, [pinPointData, currRound, resultEvaluationMutation]);
 
   const checkProximity = (clickX: number, clickY: number) => {
-    if (
+    return (
       clickX >= aiRegion.x &&
       clickX <= aiRegion.x + aiRegion.width &&
       clickY >= aiRegion.y &&
       clickY <= aiRegion.y + aiRegion.height
-    ) {
-      return 100;
-    }
-    return 0;
+    );
   };
+
+  const handlePlayAgain = () => {
+    router.replace("/gamePinPointSP")
+  }
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (imageRef.current) {
-      const rect = imageRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    if (!imageRef.current || !aiRegion) return;
 
-      setClickCoords({ x, y });
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-      const points = checkProximity(x, y);
-      setScore((prevScore) => prevScore + points);
-    }
+    setClickCoords({ x, y });
+
+    const isGuessedRight = checkProximity(x, y);
+    setScore((prevScore) => [...prevScore, isGuessedRight]);
+
+    // Proceed to the next round
+    setCurrRound((prevRound) => prevRound + 1);
   };
+
+  useEffect(() => {
+    if (resultsData) {
+      setTimeout(() => {
+        router.push("/singleplayer/pinpoint");
+      }, 5000);
+    }
+  }, [resultsData, router]);
+
 
   if (isPinPointSPDataLoading) return <div>Loading...</div>;
   if (isPinPointSPDataError) return <div>Error: {pinPointSPDataError.message}</div>;
 
   return (
-    <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Click on the AI-Generated Parts!</h1>
-
-      <div className="relative" ref={imageRef} onClick={handleImageClick}>
-        {imageUrl && (
-          <Image
-            src={imageUrl}
-            alt="Game"
-            width={500}
-            height={500}
-            className="rounded-lg shadow-md border-2 border-gray-300"
-          />
+    <>
+      <div>
+        {areResultsEvaluatingLoading && <p>Loading results...</p>}
+        {evaluatingResultsError && (
+          <p className="text-red-500">
+            Error evaluating results: {resultsError.message}
+          </p>
         )}
 
 
-        {clickCoords && (
-          <div
-            className="absolute w-4 h-4 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ top: clickCoords.y, left: clickCoords.x }}
-          />
+        {resultsData && <ReactConfetti width={window.innerWidth} height={window.innerHeight} />}
+        {resultsData && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+            <h2 className="text-4xl font-bold text-white mb-4">🎉 Congratulations! You scored: {resultsData.result} 🎉</h2>
+            <p className="text-lg text-gray-300 mt-2">
+              Redirecting to the home page in 10 seconds
+            </p>
+
+
+            <Button onClick={handlePlayAgain}>Play Again</Button>
+          </div>
         )}
       </div>
 
-      <div className="mt-6 text-xl text-gray-700">
-        <p>
-          <span className="font-semibold">Score:</span> {score}
-        </p>
+      <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Click on the AI-Generated Parts!</h1>
+
+        <div className="relative" ref={imageRef} onClick={handleImageClick}>
+          {imageUrl && (
+            <Image
+              src={imageUrl}
+              alt="Game"
+              width={500}
+              height={500}
+              className="rounded-lg shadow-md border-2 border-gray-300"
+            />
+          )}
+
+          {aiRegion && (
+            <div
+              className="absolute bg-blue-500 bg-opacity-50 pointer-events-none"
+              style={{
+                top: aiRegion.y,
+                left: aiRegion.x,
+                width: aiRegion.width,
+                height: aiRegion.height,
+              }}
+            />
+          )}
+          {clickCoords && (
+            <div
+              className="absolute w-4 h-4 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ top: clickCoords.y, left: clickCoords.x }}
+            />
+          )}
+        </div>
+
       </div>
-    </div>
+    </>
   );
 };
 

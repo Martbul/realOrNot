@@ -26,6 +26,22 @@ func (ppm *PinPointSPGameMatchmaker) StartPinPointSPGame(dbConn *sqlx.DB) ([]typ
 
 }
 
-func (ppm *PinPointSPGameMatchmaker) EvaluatePinPointSPGameResults(dbConn *sqlx.DB) {
+func (ppm *PinPointSPGameMatchmaker) EvaluatePinPointSPGameResults(userID string, scoreArr []bool, dbConn *sqlx.DB) (int, error) {
+
+	var score = 0
+	for _, v := range scoreArr {
+		if v == true {
+			score++
+		}
+	}
+
+	err := db.SavePinPointSPResult(dbConn, userID, score)
+	//WARN: Improve error handling
+	if err != nil {
+		return -1, fmt.Errorf("Could not get persist pinPointSP score")
+	}
+
+	//WARN: ADD SCORE TO DB
+	return score, nil
 
 }

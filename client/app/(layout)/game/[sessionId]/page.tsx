@@ -27,7 +27,7 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 
 	const sendGuess = (guess: string) => {
 		if (!game.ws || selectedImage) return;
-		const payload = { player_id: user, guess };
+		const payload = { player_id: user.id, guess };
 		game.ws.send(JSON.stringify(payload));
 		console.log("Sent guess:", payload);
 		setSelectedImage(guess);

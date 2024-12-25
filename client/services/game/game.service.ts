@@ -18,8 +18,11 @@ export const joinGame = (userId: string, game: Game, setGame: any) => {
 				if (message.status === "queued") {
 				} else if (message.status === "game_found") {
 					resolve(message.session)
+
+					console.log(message)
 				} else if (message.status === "game_start") {
 				} else if (message.round) {
+					console.log(message.round)
 					setGame((prevGame: Game) => ({
 						...prevGame,
 						currentRound: message.round,

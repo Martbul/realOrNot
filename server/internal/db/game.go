@@ -89,7 +89,7 @@ func GetPinPointSPRoundData(db *sqlx.DB) ([]types.PinPointRoundData, error) {
         FROM pinpointimages
     ) subquery
     ORDER BY RANDOM()
-    LIMIT 10;
+    LIMIT 5;
 `
 
 	err := db.Select(&gameRoundsData, query)
@@ -108,40 +108,31 @@ func GetPinPointSPRoundData(db *sqlx.DB) ([]types.PinPointRoundData, error) {
 
 }
 
-func AddPlayerWin(dbConn *sqlx.DB, userID string) error {
+func AddPlayerDuelWin(dbConn *sqlx.DB, userID string) error {
 	if dbConn == nil {
-		return fmt.Errorf("db is nil in AddWin")
+		return fmt.Errorf("database connection is nil")
 	}
-	fmt.Println("starting to add win to player:", userID)
 
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
+		fmt.Printf("[ERROR] Failed to begin transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	queryLeaderboard := `
-		INSERT INTO winsLeaderboard (user_id, total_wins) 
-		VALUES ($1, 1)
-		ON CONFLICT (user_id) 
-		DO UPDATE SET total_wins = winsLeaderboard.total_wins + 1, last_updated = CURRENT_TIMESTAMP`
-	if _, err := tx.Exec(queryLeaderboard, userID); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to update winsLeaderboard for userID %s: %w", userID, err)
-	}
-
-	queryUsers := `
-		UPDATE users 
-		SET wins = (SELECT total_wins FROM winsLeaderboard WHERE user_id = $1) 
-		WHERE id = $1`
-	if _, err := tx.Exec(queryUsers, userID); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("failed to update users table for userID %s: %w", userID, err)
+	query := `UPDATE users SET duelwins = duelwins + 1 WHERE id = $1`
+	_, execErr := tx.Exec(query, userID)
+	if execErr != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			fmt.Printf("[ERROR] Failed to rollback transaction for userID: %s, rollback error: %v\n", userID, rbErr)
+			return fmt.Errorf("failed to execute query and rollback failed: %w; rollback error: %v", execErr, rbErr)
+		}
+		return fmt.Errorf("failed to execute query: %w", execErr)
 	}
 
 	if err := tx.Commit(); err != nil {
+		fmt.Printf("[ERROR] Failed to commit transaction for userID: %s, error: %v\n", userID, err)
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
-
 	return nil
 }
 

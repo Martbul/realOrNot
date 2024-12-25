@@ -47,7 +47,7 @@ export default function Streak() {
 						Streak
 					</h1>
 					<p className="text-lg max-w-xl text-gray-300 leading-relaxed">
-						Welcome to <span className="text-green-400 font-bold">Streak</span>, the ultimate skill-based challenge!
+						Welcome to <span className="text-violet-900 font-bold">Streak</span>, the ultimate skill-based challenge!
 						Outsmart opponents, climb the leaderboard, and prove you're the best.
 						Will you claim the top spot?
 					</p>
@@ -65,7 +65,7 @@ export default function Streak() {
 					</div>
 					<Button
 						variant="primary"
-						className="px-10 py-4 text-xl font-bold bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-black rounded-lg hover:scale-105 transform transition-all shadow-lg"
+						className="px-10 py-4 text-xl font-bold bg-gradient-to-r from-purple-900 to-violet-950 text-black rounded-lg hover:scale-105 transform transition-all shadow-lg"
 						onClick={() => handleJoinGame()}
 					>
 						Play Now
@@ -108,7 +108,7 @@ export default function Streak() {
 
 				<footer className="mt-auto py-6 text-center text-sm text-gray-500">
 					<p>
-						Powered by <span className="text-green-400">StreakNation</span>. All rights reserved.
+						Powered by <span className="text-violet-900">REALorNOT</span>. All rights reserved.
 					</p>
 				</footer>
 			</div>

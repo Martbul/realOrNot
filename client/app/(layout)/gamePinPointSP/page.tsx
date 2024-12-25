@@ -1,8 +1,3 @@
-
-
-
-
-
 'use client';
 
 import { useAuthContext } from '@/contexts/authContext';
@@ -14,7 +9,7 @@ import ReactConfetti from 'react-confetti';
 
 import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+
 const ImageClickGame = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [aiRegion, setAiRegion] = useState<any>(null);
@@ -52,14 +47,13 @@ const ImageClickGame = () => {
     },
   });
 
-  // Load the initial data for the current round
   useEffect(() => {
     if (pinPointData?.gameData?.length > currRound) {
       const { ImgURL, X, Y, Width, Height } = pinPointData.gameData[currRound];
       setImageUrl(ImgURL);
       setAiRegion({ x: X, y: Y, width: Width, height: Height });
     } else if (pinPointData?.gameData?.length === currRound) {
-      resultEvaluationMutation(); // Trigger result evaluation after the last round
+      resultEvaluationMutation();
     }
   }, [pinPointData, currRound, resultEvaluationMutation]);
 
@@ -88,7 +82,6 @@ const ImageClickGame = () => {
     const isGuessedRight = checkProximity(x, y);
     setScore((prevScore) => [...prevScore, isGuessedRight]);
 
-    // Proceed to the next round
     setCurrRound((prevRound) => prevRound + 1);
   };
 
@@ -114,7 +107,6 @@ const ImageClickGame = () => {
           </p>
         )}
 
-
         {resultsData && <ReactConfetti width={window.innerWidth} height={window.innerHeight} />}
         {resultsData && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-50">
@@ -123,7 +115,6 @@ const ImageClickGame = () => {
               Redirecting to the home page in 10 seconds
             </p>
 
-
             <Button onClick={handlePlayAgain}>Play Again</Button>
           </div>
         )}
@@ -131,6 +122,10 @@ const ImageClickGame = () => {
 
       <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">Click on the AI-Generated Parts!</h1>
+
+        <div className="absolute top-4 right-4 bg-blue-500 text-white text-xl px-4 py-2 rounded-lg shadow-lg">
+          Round: {currRound + 1}
+        </div>
 
         <div className="relative" ref={imageRef} onClick={handleImageClick}>
           {imageUrl && (
@@ -143,6 +138,9 @@ const ImageClickGame = () => {
             />
           )}
 
+
+
+          {/* 
           {aiRegion && (
             <div
               className="absolute bg-blue-500 bg-opacity-50 pointer-events-none"
@@ -154,6 +152,10 @@ const ImageClickGame = () => {
               }}
             />
           )}
+
+
+        */}
+
           {clickCoords && (
             <div
               className="absolute w-4 h-4 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"

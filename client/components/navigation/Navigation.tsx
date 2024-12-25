@@ -52,23 +52,23 @@ const MenuDropdownItem = ({
 );
 
 const UserDropdown = ({ setUser, user }) => {
-	const [isOpen, setIsOpen] = useState(false);
+	const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-	useClickOutside(dropdownRef, () => setIsOpen(false));
+	useClickOutside(dropdownRef, () => setUserDropdownOpen(false));
 
 	return (
 		<div className="relative hidden md:block" ref={dropdownRef}>
-			<button
+			<div
 				className="flex items-center space-x-3 bg-gray-800 p-2 rounded-lg hover:bg-gray-700 transition duration-200"
-				onClick={() => setIsOpen(!isOpen)}
+				onMouseEnter={() => setUserDropdownOpen(true)}
+				onMouseLeave={() => setUserDropdownOpen(false)}
 			>
 				<UserProfileIcon className="h-8 w-8" />
 				<span className="text-sm font-semibold text-white">{user.username}</span>
-
 				<CaretIcon />
-			</button>
-			{isOpen && (
+			</div>
+			{userDropdownOpen && (
 				<div className="absolute right-0 bg-gray-800 p-4 rounded-lg mt-2 w-48 shadow-lg border border-gray-700">
 					<a href="/profile" className="block text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition duration-200">
 						Profile
@@ -97,23 +97,27 @@ const Dropdown = ({ title, children }: { title: string; children: React.ReactNod
 	useClickOutside(dropdownRef, () => setIsOpen(false));
 
 	return (
-		<div className="relative">
+		<div
+			className="relative"
+			onMouseEnter={() => setIsOpen(true)}
+			onMouseLeave={() => setIsOpen(false)}
+			ref={dropdownRef}
+		>
 			<button
 				className="text-white font-semibold flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg transition duration-200"
-				onClick={() => setIsOpen(!isOpen)}
+				onClick={() => setIsOpen(!isOpen)} // For mobile toggle
 			>
 				<span>{title}</span>
 				<CaretIcon />
 			</button>
 			{isOpen && (
-				<div className="absolute left-0 bg-gray-800 p-4 rounded-lg mt-2 w-56 shadow-lg border border-gray-700">
+				<div className="absolute left-0 bg-gray-800 p-4 rounded-lg mt-2 w-56 shadow-lg border border-gray-700 transition-all ease-in-out duration-200">
 					{children}
 				</div>
 			)}
 		</div>
 	);
 };
-
 
 const Navigation: React.FC = () => {
 	const { user, setUser } = useAuthContext();
@@ -123,7 +127,6 @@ const Navigation: React.FC = () => {
 	return (
 		<header className="bg-gray-900 text-white shadow-lg p-4">
 			<div className="flex items-center justify-between w-full">
-				{/* Logo */}
 				<div className="flex items-center space-x-3">
 					<a href="/" className="flex items-center">
 						<h1 className="text-xl font-bold ml-2 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
@@ -132,27 +135,23 @@ const Navigation: React.FC = () => {
 					</a>
 				</div>
 
-				{/* Desktop Navigation */}
 				<div className="hidden md:flex space-x-24 items-center">
-					{/* Singleplayer Dropdown */}
 					<Dropdown title="Singleplayer">
 						<MenuDropdownItem
 							href="/singleplayer/streak"
-							imgSrc="/map.png"
-							title="Streak"
-							description="Travel around the world!"
-						/>
+							imgSrc="/fire.png"
 
+							title="Streak"
+							description="Guess as long as you are right!"
+						/>
 						<MenuDropdownItem
 							href="/singleplayer/pinpoint"
-							imgSrc="/map.png"
+							imgSrc="/maps-and-flags.png"
 							title="PinPoint"
 							description="Guess what has been AI generated!"
 						/>
-
 					</Dropdown>
 
-					{/* Multiplayer Dropdown */}
 					<Dropdown title="Multiplayer">
 						<MenuDropdownItem
 							href="/multiplayer/duels"
@@ -174,7 +173,6 @@ const Navigation: React.FC = () => {
 						/>
 					</Dropdown>
 
-					{/* Party Dropdown */}
 					<Dropdown title="Party">
 						<MenuDropdownItem
 							href="/party"
@@ -185,38 +183,26 @@ const Navigation: React.FC = () => {
 					</Dropdown>
 				</div>
 
-
 				{user.username ? (
 					<div className="hidden md:block">
 						<UserDropdown setUser={setUser} user={user} />
 					</div>
 				) : (
 					<Link href="/login">
-
-						<button
-							className="bg-indigo-950 text-white px-4 py-2 rounded"
-						>
-							Login
-						</button>
-
-
-
+						<button className="bg-indigo-950 text-white px-4 py-2 rounded">Login</button>
 					</Link>
-
 				)}
-				{/* Mobile Menu Toggle */}
+
 				<button
 					className="md:hidden flex items-center text-white focus:outline-none"
 					onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 					aria-label="Toggle menu"
 				>
 					{mobileMenuOpen ? (
-						/* Close Icon */
 						<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
 						</svg>
 					) : (
-						/* Hamburger Icon */
 						<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
 						</svg>
@@ -224,10 +210,8 @@ const Navigation: React.FC = () => {
 				</button>
 			</div>
 
-			{/* Mobile Menu */}
 			{mobileMenuOpen && (
 				<div className="mt-4 space-y-4 md:hidden">
-					{/* Player Details */}
 					<div>
 						<button
 							onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -241,7 +225,6 @@ const Navigation: React.FC = () => {
 							<CaretIcon />
 						</button>
 
-						{/* User Dropdown Links */}
 						{userDropdownOpen && (
 							<div className="mt-2 bg-gray-800 rounded-lg shadow-md border border-gray-700">
 								<a
@@ -268,15 +251,21 @@ const Navigation: React.FC = () => {
 						)}
 					</div>
 
-					{/* Navigation Links */}
 					<div className="border-t border-gray-700 pt-4">
 						<Dropdown title="Singleplayer">
 							<MenuDropdownItem
 								href="/singleplayer/streak"
-								imgSrc="/map.png"
+								imgSrc="/fire.png"
 								title="Streak"
-								description="Travel around the world!"
+								description="Guess as loong as you are right!"
 							/>
+							<MenuDropdownItem
+								href="/singleplayer/pinpoint"
+								imgSrc="/maps-and-flags.png"
+								title="PinPoint"
+								description="Guess what has been AI generated!"
+							/>
+
 						</Dropdown>
 						<Dropdown title="Multiplayer">
 							<MenuDropdownItem
@@ -312,9 +301,5 @@ const Navigation: React.FC = () => {
 		</header>
 	);
 };
-
-
-
-
 
 export default Navigation;

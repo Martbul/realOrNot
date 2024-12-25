@@ -157,23 +157,7 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-              {images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`w-4 h-4 rounded-full border-2 ${index === currentIndex
-                    ? "bg-white border-white"
-                    : "bg-gray-400 border-transparent hover:bg-white hover:border-gray-300"
-                    }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
           </div>
-
-
-
         </div>
 
         <section className="w-full">

@@ -76,6 +76,7 @@ func JoinDuel(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFu
 				}
 			}
 		}()
+		fmt.Println("api", player)
 
 		newSession, err := duelMM.DuelQueuePlayer(player, dbConn)
 		if err != nil {
@@ -84,21 +85,19 @@ func JoinDuel(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFu
 			return
 		}
 
-		log.Debug(newSession.ID)
-		//	if newSession != nil {
-		///		if err := conn.WriteJSON(map[string]string{
-		//			"status":   "game_found",
-		//			"session":  newSession.ID,
-		//			"message":  "Game session started!",
-		//			"playerId": player.ID,
-		//		}); err != nil {
-		//			log.Error("Error notifying player about game session:", err)
-		//		}
-		//	}
+		if newSession != nil {
+			if err := conn.WriteJSON(map[string]string{
+				"status":   "game_found",
+				"session":  newSession.ID,
+				"message":  "Game session started!",
+				"playerId": player.ID,
+			}); err != nil {
+				log.Error("Error notifying player about game session:", err)
+			}
+		}
 
 		<-done
 
-		log.Info("Closing WebSocket connection for player:", player.ID)
 		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		conn.Close()
 	}

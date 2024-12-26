@@ -136,12 +136,141 @@ func AddPlayerDuelWin(dbConn *sqlx.DB, userID string) error {
 	return nil
 }
 
-func SavePinPointSPResult(dbConn *sqlx.DB, userID string, score int) error {
+func AddPlayerDuelGamesPlayed(dbConn *sqlx.DB, userID string) error {
 	if dbConn == nil {
-		return fmt.Errorf("db is nil in AddWin")
+		return fmt.Errorf("database connection is nil")
 	}
-	fmt.Println("starting to add win to player:", userID)
 
-	//WARN: ADD A COULUMN IN USER FOR PINPOINTSP AND ADD THE POINTS FOR SOME STATS LATER TO SUE
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to begin transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	query := `UPDATE users SET duelgamesplayed = duelgamesplayed + 1 WHERE id = $1`
+	_, execErr := tx.Exec(query, userID)
+	if execErr != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			fmt.Printf("[ERROR] Failed to rollback transaction for userID: %s, rollback error: %v\n", userID, rbErr)
+			return fmt.Errorf("failed to execute query and rollback failed: %w; rollback error: %v", execErr, rbErr)
+		}
+		return fmt.Errorf("failed to execute query: %w", execErr)
+	}
+
+	if err := tx.Commit(); err != nil {
+		fmt.Printf("[ERROR] Failed to commit transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func AddPlayerAllGamesPlayed(dbConn *sqlx.DB, userID string) error {
+	if dbConn == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to begin transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	query := `UPDATE users SET allgamesplayed = allgamesplayed + 1 WHERE id = $1`
+	_, execErr := tx.Exec(query, userID)
+	if execErr != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			fmt.Printf("[ERROR] Failed to rollback transaction for userID: %s, rollback error: %v\n", userID, rbErr)
+			return fmt.Errorf("failed to execute query and rollback failed: %w; rollback error: %v", execErr, rbErr)
+		}
+		return fmt.Errorf("failed to execute query: %w", execErr)
+	}
+
+	if err := tx.Commit(); err != nil {
+		fmt.Printf("[ERROR] Failed to commit transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func AddPlayerGamesWin(dbConn *sqlx.DB, userID string) error {
+	if dbConn == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to begin transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	query := `UPDATE users SET allwins = allwins + 1 WHERE id = $1`
+	_, execErr := tx.Exec(query, userID)
+	if execErr != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			fmt.Printf("[ERROR] Failed to rollback transaction for userID: %s, rollback error: %v\n", userID, rbErr)
+			return fmt.Errorf("failed to execute query and rollback failed: %w; rollback error: %v", execErr, rbErr)
+		}
+		return fmt.Errorf("failed to execute query: %w", execErr)
+	}
+
+	if err := tx.Commit(); err != nil {
+		fmt.Printf("[ERROR] Failed to commit transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func AddPlayerPinPointSPGamesPlayed(dbConn *sqlx.DB, userID string) error {
+	if dbConn == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to begin transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	query := `UPDATE users SET pinpointspgamesplayed = pinpointspgamesplayed + 1 WHERE id = $1`
+	_, execErr := tx.Exec(query, userID)
+	if execErr != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			fmt.Printf("[ERROR] Failed to rollback transaction for userID: %s, rollback error: %v\n", userID, rbErr)
+			return fmt.Errorf("failed to execute query and rollback failed: %w; rollback error: %v", execErr, rbErr)
+		}
+		return fmt.Errorf("failed to execute query: %w", execErr)
+	}
+
+	if err := tx.Commit(); err != nil {
+		fmt.Printf("[ERROR] Failed to commit transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func AddPlayerPinPointSPWin(dbConn *sqlx.DB, userID string) error {
+	if dbConn == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to begin transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	query := `UPDATE users SET pinpointspwins = pinpointspwins + 1 WHERE id = $1`
+	_, execErr := tx.Exec(query, userID)
+	if execErr != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			fmt.Printf("[ERROR] Failed to rollback transaction for userID: %s, rollback error: %v\n", userID, rbErr)
+			return fmt.Errorf("failed to execute query and rollback failed: %w; rollback error: %v", execErr, rbErr)
+		}
+		return fmt.Errorf("failed to execute query: %w", execErr)
+	}
+
+	if err := tx.Commit(); err != nil {
+		fmt.Printf("[ERROR] Failed to commit transaction for userID: %s, error: %v\n", userID, err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
 	return nil
 }

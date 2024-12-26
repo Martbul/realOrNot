@@ -1,5 +1,5 @@
-
 import { useAuthContext } from '@/contexts/authContext';
+
 import { logout } from '@/services/auth/auth.service';
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';

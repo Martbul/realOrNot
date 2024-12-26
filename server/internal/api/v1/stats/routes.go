@@ -9,6 +9,7 @@ import (
 
 func RegisterStatsRoutes(r *mux.Router, dbConn *sqlx.DB) {
 	statsRouter := r.PathPrefix("/stats").Subrouter()
-	statsRouter.HandleFunc("/leaderboard", WinsLeaderboard(dbConn)).Methods(http.MethodGet)
+	statsRouter.HandleFunc("/leaderboard", DuelWinsLeaderboard(dbConn)).Methods(http.MethodGet)
+	statsRouter.HandleFunc("/profile", ProfileStats(dbConn)).Methods(http.MethodPost)
 
 }

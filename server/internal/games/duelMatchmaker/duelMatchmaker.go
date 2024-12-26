@@ -219,10 +219,6 @@ func (m *Matchmaker) duelEndSession(sess *duelSession.DuelSession, scores map[st
 
 	}
 
-	for _, w := range winnersId {
-		db.AddPlayerDuelWin(dbConn, w)
-	}
-
 	for _, p := range sess.Players {
 
 		if p.Conn != nil {
@@ -234,4 +230,15 @@ func (m *Matchmaker) duelEndSession(sess *duelSession.DuelSession, scores map[st
 			})
 		}
 	}
+
+	for _, w := range winnersId {
+		db.AddPlayerGamesWin(dbConn, w)
+		db.AddPlayerDuelWin(dbConn, w)
+	}
+
+	for _, p := range sess.Players {
+		db.AddPlayerAllGamesPlayed(dbConn, p.ID)
+		db.AddPlayerDuelGamesPlayed(dbConn, p.ID)
+	}
+
 }

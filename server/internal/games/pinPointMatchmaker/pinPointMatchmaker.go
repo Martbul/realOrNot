@@ -21,27 +21,46 @@ func (ppm *PinPointSPGameMatchmaker) StartPinPointSPGame(dbConn *sqlx.DB) ([]typ
 		return nil, fmt.Errorf("Could not get rounds for pinpointsgame")
 	}
 
-	fmt.Println("TESTING ROUNDS EXISTANE", gameRoundsData)
 	return gameRoundsData, nil
 
 }
 
 func (ppm *PinPointSPGameMatchmaker) EvaluatePinPointSPGameResults(userID string, scoreArr []bool, dbConn *sqlx.DB) (int, error) {
-
 	var score = 0
 	for _, v := range scoreArr {
 		if v == true {
 			score++
 		}
 	}
+	if score >= 3 {
 
-	err := db.SavePinPointSPResult(dbConn, userID, score)
-	//WARN: Improve error handling
-	if err != nil {
-		return -1, fmt.Errorf("Could not get persist pinPointSP score")
+		err := db.AddPlayerPinPointSPWin(dbConn, userID)
+		//WARN: Improve error handling
+		if err != nil {
+			return -1, fmt.Errorf("Could not get persist pinPointSP score")
+		}
+
+		err = db.AddPlayerGamesWin(dbConn, userID)
+
+		//WARN: Improve error handling
+		if err != nil {
+			return -1, fmt.Errorf("Could not get persist pinPointSP score")
+		}
+
+		err = db.AddPlayerAllGamesPlayed(dbConn, userID)
+
+		//WARN: Improve error handling
+		if err != nil {
+			return -1, fmt.Errorf("Could not get persist pinPointSP score")
+		}
+
+		err = db.AddPlayerPinPointSPGamesPlayed(dbConn, userID)
+		//WARN: Improve error handling
+		if err != nil {
+			return -1, fmt.Errorf("Could not get persist pinPointSP score")
+		}
+
 	}
-
-	//WARN: ADD SCORE TO DB
 	return score, nil
 
 }

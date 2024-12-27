@@ -29,6 +29,57 @@ func NewDuelMatchmaker(minPlayers int) *Matchmaker {
 	}
 }
 
+//func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*duelSession.DuelSession, error) {
+//	log := logger.GetLogger()
+//	m.Mu.Lock()
+//	defer m.Mu.Unlock()
+//
+//	m.queue = append(m.queue, player)
+
+//	m.PlayerStates.Store(player.ID, false)
+//
+//	if err := player.Conn.WriteJSON(map[string]string{
+//		"status":  "queued",
+//		"message": "You have been added to the queue. Waiting for more players...",
+//	}); err != nil {
+//		log.Error("Error sending queue status to player:", err)
+//		return nil, err
+///	}
+///
+//	if len(m.queue) >= m.minPlayers {
+//		players := m.queue[:m.minPlayers]
+//		m.queue = m.queue[m.minPlayers:]
+//
+//		newSession := duelSession.NewDuelSession(players)
+//		m.Sessions[newSession.ID] = newSession // Add to in-memory sessions
+//
+//		for _, p := range players {
+//			m.PlayerStates.Store(p.ID, true)
+//		}
+//
+//		for _, p := range players {
+//			go func(player *types.Player, session *duelSession.DuelSession) {
+//				if player.Conn != nil {
+//					err := player.Conn.WriteJSON(map[string]string{
+//						"status":  "game_found",
+//						"session": session.ID,
+//						"message": "Game session will start soon!",
+//					})
+//					if err != nil {
+//						log.Error("Error notifying player:", err)
+//					}
+//				}
+//			}(p, newSession)
+//		}
+//
+//		go m.DuelStartSession(newSession, dbConn)
+//
+//		return newSession, nil
+//	}
+///
+//	return nil, nil
+//}
+
 func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*duelSession.DuelSession, error) {
 	log := logger.GetLogger()
 	m.Mu.Lock()
@@ -47,23 +98,36 @@ func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*du
 	}
 
 	if len(m.queue) >= m.minPlayers {
-		players := m.queue[:m.minPlayers]
-		m.queue = m.queue[m.minPlayers:]
+		// Save the dequeued players into a variable
+		dequeuedPlayers := m.queue[:m.minPlayers]
+		m.queue = m.queue[m.minPlayers:] // Remove them from the queue
 
-		newSession := duelSession.NewDuelSession(players)
+		// Create a new session
+		newSession := duelSession.NewDuelSession(dequeuedPlayers)
 		m.Sessions[newSession.ID] = newSession // Add to in-memory sessions
 
-		for _, p := range players {
+		// Update the state for each player
+		for _, p := range dequeuedPlayers {
 			m.PlayerStates.Store(p.ID, true)
 		}
 
-		for _, p := range players {
+		players := []string{}
+
+		for _, pl := range dequeuedPlayers {
+			player, _ := db.GetUserById(dbConn, pl.ID)
+			players = append(players, player.UserName)
+		}
+
+		// Notify each player about the session
+		for _, p := range dequeuedPlayers {
 			go func(player *types.Player, session *duelSession.DuelSession) {
 				if player.Conn != nil {
-					err := player.Conn.WriteJSON(map[string]string{
+					err := player.Conn.WriteJSON(map[string]any{
+
 						"status":  "game_found",
 						"session": session.ID,
 						"message": "Game session will start soon!",
+						"players": players,
 					})
 					if err != nil {
 						log.Error("Error notifying player:", err)
@@ -72,6 +136,7 @@ func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*du
 			}(p, newSession)
 		}
 
+		// Start the session asynchronously
 		go m.DuelStartSession(newSession, dbConn)
 
 		return newSession, nil
@@ -79,7 +144,6 @@ func (m *Matchmaker) DuelQueuePlayer(player *types.Player, dbConn *sqlx.DB) (*du
 
 	return nil, nil
 }
-
 func (m *Matchmaker) DuelStartSession(sess *duelSession.DuelSession, db *sqlx.DB) {
 	time.Sleep(5 * time.Second)
 

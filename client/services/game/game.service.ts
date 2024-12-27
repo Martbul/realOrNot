@@ -17,7 +17,7 @@ export const joinGame = (userId: string, game: Game, setGame: any) => {
 
 				if (message.status === "queued") {
 				} else if (message.status === "game_found") {
-					resolve(message.session)
+					resolve({ session: message.session, players: message.players })
 
 					console.log(message)
 				} else if (message.status === "game_start") {

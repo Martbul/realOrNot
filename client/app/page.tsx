@@ -68,9 +68,15 @@ export default function Home() {
       }
       return await joinGame(user.id, game, setGame);
     },
-    onSuccess: (sessionID) => {
+    onSuccess: ({ session, players }) => {
+      // Stop the waiting state
       setIsWaiting(false);
-      router.replace(`/game/${sessionID}`);
+
+      // Log players for debugging or display purposes
+      console.log("Players in game:", players);
+
+      // Redirect to the game session with the appropriate parameters
+      router.replace(`/game/${session}?exampleParam=value&anotherParam=anotherValue`);
     },
   });
 

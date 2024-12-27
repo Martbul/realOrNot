@@ -1,8 +1,10 @@
+
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "@/contexts/gameContext";
 import { useAuthContext } from "@/contexts/authContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Confetti from "react-confetti";
 import { use } from "react";
 
@@ -24,6 +26,19 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	const router = useRouter();
 
 	const { sessionId } = use(params);
+	const searchParams = useSearchParams();
+
+	// Accessing query parameters
+	const exampleParam = searchParams.get("exampleParam");
+	const anotherParam = searchParams.get("anotherParam");
+
+
+
+	useEffect(() => {
+		if (exampleParam) {
+			console.log("Query Params:", exampleParam);
+		}
+	}, [exampleParam]);
 
 	const sendGuess = (guess: string) => {
 		if (!game.ws || selectedImage) return;
@@ -105,9 +120,18 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 
 			{showTimer && (
 				<div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-					<div className="text-center">
-						<p className="text-6xl font-bold text-white">{startGameTimer}</p>
-						<p className="text-lg text-gray-300 mt-2">Get ready!</p>
+					<div className="relative w-full">
+						{/* Player Names Animation */}
+						<div className="absolute left-0 top-1/3 transform -translate-y-1/2 animate-slideInLeft text-4xl font-bold text-indigo-500">
+							PLAYER1
+						</div>
+						<div className="absolute right-0 top-1/3 transform -translate-y-1/2 animate-slideInRight text-4xl font-bold text-green-500">
+							PLAYER2
+						</div>
+						{/* Timer Display */}
+						<div className="text-center text-white text-6xl font-bold">
+							{startGameTimer}
+						</div>
 					</div>
 				</div>
 			)}
@@ -155,6 +179,11 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 };
 
 export default GamePage;
+
+
+
+
+
 
 
 

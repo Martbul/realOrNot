@@ -119,14 +119,21 @@ const Dropdown = ({ title, children }: { title: string; children: React.ReactNod
 	);
 };
 
+
+
+
+
 const Navigation: React.FC = () => {
 	const { user, setUser } = useAuthContext();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
 	return (
-		<header className="bg-gray-900 text-white shadow-lg p-4">
-			<div className="flex items-center justify-between w-full">
+		<header className="relative text-white shadow-lg p-4">
+			{/* Background with opacity */}
+			<div className="absolute inset-0 bg-gray-900 opacity-60 z-0" />
+
+			<div className="flex items-center justify-between w-full relative z-10">
 				<div className="flex items-center space-x-3">
 					<a href="/" className="flex items-center">
 						<h1 className="text-xl font-bold ml-2 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
@@ -140,7 +147,6 @@ const Navigation: React.FC = () => {
 						<MenuDropdownItem
 							href="/singleplayer/streak"
 							imgSrc="/fire.png"
-
 							title="Streak"
 							description="Guess as long as you are right!"
 						/>
@@ -265,7 +271,6 @@ const Navigation: React.FC = () => {
 								title="PinPoint"
 								description="Guess what has been AI generated!"
 							/>
-
 						</Dropdown>
 						<Dropdown title="Multiplayer">
 							<MenuDropdownItem
@@ -301,5 +306,6 @@ const Navigation: React.FC = () => {
 		</header>
 	);
 };
+
 
 export default Navigation;

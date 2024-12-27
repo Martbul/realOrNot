@@ -115,4 +115,34 @@
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
+
 }
+
+
+
+/* globals.css or styles.css */
+#animatedBackground {
+  margin: auto;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: auto;
+  background: linear-gradient(315deg, rgba(0, 0, 0, 1) 40%, rgba(0, 10, 50, 1) 60%, rgba(0, 30, 20, 1) 85%, rgba(0, 20, 0, 1) 100%);
+  animation: gradient 70s ease infinite; /* Slowed down the animation */
+  background-size: 200% 200%; /* Reduced the size of the background for slower movement */
+  background-attachment: fixed;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 50% 50%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+
+
+

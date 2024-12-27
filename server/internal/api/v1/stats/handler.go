@@ -38,6 +38,71 @@ func DuelWinsLeaderboard(dbConn *sqlx.DB) http.HandlerFunc {
 	}
 }
 
+func PinPointSPTopPlayers(dbConn *sqlx.DB) http.HandlerFunc {
+	log := logger.GetLogger()
+	return func(w http.ResponseWriter, r *http.Request) {
+		pinPointSPTopPlayers, err := db.GetPinPointSPTopPlayers(dbConn)
+		if err != nil {
+			log.Error("Cannot fetch pinPointSP top players: %v", err)
+
+			http.Error(w, "Failed to fetch pinPointSP top players", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		if err := json.NewEncoder(w).Encode(pinPointSPTopPlayers); err != nil {
+			log.Error("Cannot encode pinPointSP top players to JSON: %v", err)
+			http.Error(w, "Failed to process pinPointSP top players data", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func StreakTopPlayers(dbConn *sqlx.DB) http.HandlerFunc {
+	log := logger.GetLogger()
+	return func(w http.ResponseWriter, r *http.Request) {
+		streakTopPlayers, err := db.GetStreakTopPlayers(dbConn)
+		if err != nil {
+			log.Error("Cannot fetch streak top players: %v", err)
+
+			http.Error(w, "Failed to fetch streak top players", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		if err := json.NewEncoder(w).Encode(streakTopPlayers); err != nil {
+			log.Error("Cannot encode duel top players to JSON: %v", err)
+			http.Error(w, "Failed to process streak top players data", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func DuelTopPlayers(dbConn *sqlx.DB) http.HandlerFunc {
+	log := logger.GetLogger()
+	return func(w http.ResponseWriter, r *http.Request) {
+		duelTopPlayers, err := db.GetDuelTopPlayers(dbConn)
+		if err != nil {
+			log.Error("Cannot fetch duel top players: %v", err)
+
+			http.Error(w, "Failed to fetch duel top players", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		if err := json.NewEncoder(w).Encode(duelTopPlayers); err != nil {
+			log.Error("Cannot encode duel top players to JSON: %v", err)
+			http.Error(w, "Failed to process duel top players data", http.StatusInternalServerError)
+			return
+		}
+	}
+}
 func ProfileStats(dbConn *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.ProfileStatsRequest

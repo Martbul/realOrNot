@@ -1,85 +1,196 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
 import Navigation from "@/components/navigation/Navigation";
+import Link from "next/link";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getDuelTopPlayers } from "@/services/stats/stats.service";
+import { joinGame } from "@/services/game/game.service";
+import { useAuthContext } from "@/contexts/authContext";
+import { useGameContext } from "@/contexts/gameContext";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Dialog, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent } from "@radix-ui/react-dialog";
 
-export default function Duels() {
-	const [progress, setProgress] = useState(0);
+export default function Duel() {
+	const { user } = useAuthContext();
+	const { game, setGame } = useGameContext();
+	const router = useRouter();
+	const [isWaiting, setIsWaiting] = useState(false);
+
+	const {
+		data: duelTopPlayersData = [], // Default to an empty array
+		isLoading: isDuelTopPlayersLoading,
+		isError: isDuelTopPlayersError,
+		error: duelTopPlayersError,
+	} = useQuery({
+		queryKey: ["duelTopPlayers"],
+		queryFn: getDuelTopPlayers,
+		staleTime: 1000 * 60 * 5,
+		retry: 3,
+	});
+
+
+
+	const {
+		mutate: joinGameMutation,
+		isLoading: isJoinGameLoading,
+		isError: isJoinGameError,
+		error: joinGameError,
+	} = useMutation({
+		mutationFn: async () => {
+			console.log(user)
+			if (!user) {
+				//TODO: Push route to login
+				throw new Error("User is not authenticated.");
+			}
+			return await joinGame(user.id, game, setGame);
+		},
+		onSuccess: (sessionID) => {
+			setIsWaiting(false);
+			router.replace(`/game/${sessionID}`);
+		},
+	});
+
+	const handleJoinGame = () => {
+		setIsWaiting(true);
+		joinGameMutation();
+	};
+
+
 
 	return (
-		<div>
-
+		<div id="animatedBackground">
 			<Navigation />
-
-
-			<div className="flex flex-col items-center bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white min-h-screen p-6">
-				<div className="flex-grow flex flex-col items-center justify-center gap-10">
-					<div className="text-center space-y-6">
-						<h1 className="text-3xl font-bold italic uppercase">
-							Welcome to Duels, <span className="text-blue-400">martBul</span>!
+			<div className="flex flex-col items-center text-white min-h-screen px-6 py-16">
+				<div className="flex flex-col-reverse md:flex-row justify-between items-center gap-16 w-full max-w-6xl">
+					<div className="flex flex-col items-center md:items-start text-center md:text-left gap-8">
+						<h1 className="text-5xl lg:text-6xl font-extrabold text-yellow-400 uppercase tracking-tighter">
+							Duel
 						</h1>
-						<h2 className="text-5xl font-bold uppercase text-blue-400">
-							Play <span className="text-yellow-400">{3 - progress}</span> games to unlock
-						</h2>
-						<h2 className="text-5xl font-bold italic uppercase text-yellow-400">
-							Your Division!
-						</h2>
-					</div>
-
-					<div className="relative">
-						<div className="w-48 h-48 bg-gray-800 rounded-full flex items-center justify-center shadow-md">
-							<Image
-								src="/avatar-placeholder.png"
-								alt="Avatar"
-								width={128}
-								height={128}
-								className="rounded-full"
-							/>
-						</div>
-					</div>
-
-					<div className="w-full max-w-md">
-						<div className="relative w-full bg-gray-700 h-12 rounded-full overflow-hidden">
-							<div
-								className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-400 to-yellow-600"
-								style={{ width: `${(progress / 3) * 100}%` }}
-							></div>
-							<span className="absolute inset-0 flex items-center justify-center text-sm">
-								{progress}/3
-							</span>
-						</div>
-						<p className="text-center text-sm mt-2">
-							Play your {progress === 0 ? "1st" : progress === 1 ? "2nd" : "3rd"} game!
+						<p className="text-lg lg:text-2xl max-w-lg text-gray-300 leading-loose">
+							Put your observation skills to the test! Find the subtle differences between two images before time runs out.
+							Each level gets trickier—can you spot them all?
 						</p>
-					</div>
-
-					<div className="text-center space-y-4">
 						<Button
-							variant="primary"
-							className="w-full max-w-xs grad gradHover"
-							onClick={() => setProgress((prev) => Math.min(prev + 1, 3))}
+							onClick={handleJoinGame}
+							disabled={isJoinGameLoading}
+
+							className="px-6 py-3 lg:px-8 lg:py-4 text-lg font-bold bg-gradient-to-r from-purple-900 to-violet-950  text-black rounded-md hover:scale-105 transform transition-transform shadow-md"
 						>
 							Play Now
+
 						</Button>
-						{progress === 3 && (
-							<div className="bg-gradient-to-b from-teal-500 to-teal-700 text-black p-4 rounded-md shadow-md">
-								<p className="font-bold text-lg">
-									Congratulations! Division unlocked.
-								</p>
-							</div>
+						{isJoinGameError && (
+							<p className="text-red-500 text-center">
+								Error: {joinGameError.message}
+							</p>
 						)}
 					</div>
+
+					<div className="flex justify-center">
+						<Image
+							src="/aiduel.webp"
+							alt="Duel Preview"
+							width={450}
+							height={350}
+							className="rounded-lg shadow-lg "
+						/>
+					</div>
+					<Dialog open={isWaiting} onOpenChange={setIsWaiting}>
+						<DialogContent className="text-center bg-gray-800 text-white">
+							<DialogHeader>
+								<DialogTitle className="text-xl font-bold">Waiting...</DialogTitle>
+								<DialogDescription>
+									Please wait while we find a game session for you!
+								</DialogDescription>
+							</DialogHeader>
+						</DialogContent>
+					</Dialog>
+
+
 				</div>
 
-				<footer className="mt-auto py-4 text-center text-sm text-gray-500">
-					Powered by REALorNOT. All rights reserved.
+				<div className="mt-12 w-full max-w-6xl mx-auto">
+					<h2 className="text-3xl font-bold text-center text-yellow-400 uppercase mb-8">
+						Top Duelers
+					</h2>
+					{isDuelTopPlayersLoading ? (
+						<p className="text-center text-gray-300">Loading podium...</p>
+					) : isDuelTopPlayersError ? (
+						<p className="text-center text-red-500">
+							Error loading data: {duelTopPlayersError.message}
+						</p>
+					) : (
+						<div className="flex justify-center items-end gap-12 relative">
+							{/* Second Place */}
+							{duelTopPlayersData.length >= 2 && (
+								<div className="flex flex-col items-center">
+									<div className="bg-gray-800 text-violet-900 rounded-full w-24 h-24 flex items-center justify-center text-2xl font-bold mb-2">
+										2
+									</div>
+									<div className="bg-gray-700 w-28 h-44 rounded-b-lg relative">
+										<div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center">
+											<p className="text-gray-300 text-lg font-semibold">
+												{duelTopPlayersData[1]?.username || "Player 2"}
+											</p>
+											<p className="text-sm text-yellow-500">
+												Wins: {duelTopPlayersData[1]?.duelwins || 0}
+											</p>
+										</div>
+									</div>
+								</div>
+							)}
+
+							{/* First Place */}
+							{duelTopPlayersData.length >= 1 && (
+								<div className="flex flex-col items-center">
+									<div className="bg-violet-900 text-black rounded-full w-28 h-28 flex items-center justify-center text-3xl font-bold mb-2">
+										1
+									</div>
+									<div className="bg-gray-700 w-36 h-56 rounded-b-lg relative">
+										<div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center">
+											<p className="text-gray-300 text-lg font-semibold">
+												{duelTopPlayersData[0]?.username || "Player 1"}
+											</p>
+											<p className="text-sm text-yellow-500">
+												Wins: {duelTopPlayersData[0]?.duelwins || 0}
+											</p>
+										</div>
+									</div>
+								</div>
+							)}
+
+							{/* Third Place */}
+							{duelTopPlayersData.length >= 3 && (
+								<div className="flex flex-col items-center">
+									<div className="bg-gray-800 text-violet-900 rounded-full w-24 h-24 flex items-center justify-center text-2xl font-bold mb-2">
+										3
+									</div>
+									<div className="bg-gray-700 w-24 h-36 rounded-b-lg relative">
+										<div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center">
+											<p className="text-gray-300 text-lg font-semibold">
+												{duelTopPlayersData[2]?.username || "Player 3"}
+											</p>
+											<p className="text-sm text-yellow-500">
+												Wins: {duelTopPlayersData[2]?.duelwins || 0}
+											</p>
+										</div>
+									</div>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
+
+				<footer className="mt-16 py-4 text-center text-xs md:text-sm text-gray-500">
+					<p>
+						Created by <span className="text-violet-900">REALorNOT Studios</span>. Challenge your perception!
+					</p>
 				</footer>
 			</div>
 		</div>
-
 	);
 }

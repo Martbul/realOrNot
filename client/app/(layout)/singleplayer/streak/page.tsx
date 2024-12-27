@@ -3,18 +3,33 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Navigation from "@/components/navigation/Navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/authContext";
 import { useRouter } from "next/navigation";
-import { handler } from "tailwindcss-animate";
 import { playStreakGame } from "@/services/game/game.service";
 import { useStreakGameContext } from "@/contexts/streakGameContext";
+import { getStreakTopPlayers } from "@/services/stats/stats.service";
 
 export default function Streak() {
 
 	const { user } = useAuthContext();
 	const { streakGame, setStreakGame } = useStreakGameContext();
 	const router = useRouter();
+
+
+	const {
+		data: streakTopPlayersData = [], // Default to an empty array
+		isLoading: isStreakTopPlayersLoading,
+		isError: isStreakTopPlayersError,
+		error: streakTopPlayersError,
+	} = useQuery({
+		queryKey: ["streakTopPlayers"],
+		queryFn: getStreakTopPlayers,
+		staleTime: 1000 * 60 * 5,
+		retry: 3,
+	});
+
+
 	const {
 		mutate: joinGameMutation,
 		isLoading: isJoinGameLoading,
@@ -38,10 +53,10 @@ export default function Streak() {
 
 
 	return (
-		<div>
+		<div id="animatedBackground">
 			<Navigation />
 
-			<div className="flex flex-col items-center bg-gradient-to-b from-gray-900 via-black to-gray-800 text-white min-h-screen p-6">
+			<div className="flex flex-col items-center text-white min-h-screen p-6">
 				<div className="flex flex-col items-center text-center gap-6 pt-10">
 					<h1 className="text-5xl font-extrabold text-yellow-400 uppercase tracking-widest">
 						Streak
@@ -72,6 +87,10 @@ export default function Streak() {
 					</Button>
 				</div>
 
+
+
+
+
 				<div className="w-full max-w-5xl mt-16">
 					<h2 className="text-4xl font-extrabold text-center text-yellow-400 uppercase mb-6">
 						Leaderboard
@@ -82,29 +101,34 @@ export default function Streak() {
 								<tr className="text-gray-400 text-lg border-b border-gray-700">
 									<th className="py-4">Rank</th>
 									<th>Player</th>
-									<th>Score</th>
+									<th>Highest Score</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr className="border-b border-gray-700 text-lg">
-									<td className="py-4 text-yellow-500 font-bold">1</td>
-									<td className="py-4">ProGamer</td>
-									<td className="py-4">4520</td>
-								</tr>
-								<tr className="border-b border-gray-700 text-lg">
-									<td className="py-4 text-yellow-500 font-bold">2</td>
-									<td className="py-4">SwiftPlayer</td>
-									<td className="py-4">4200</td>
-								</tr>
-								<tr className="text-lg">
-									<td className="py-4 text-yellow-500 font-bold">3</td>
-									<td className="py-4">Victory123</td>
-									<td className="py-4">3900</td>
-								</tr>
+								{isStreakTopPlayersLoading ? (
+									<tr>
+										<td colSpan="3" className="py-4 text-center">Loading...</td>
+									</tr>
+								) : isStreakTopPlayersError ? (
+									<tr>
+										<td colSpan="3" className="py-4 text-center text-red-500">
+											Error: {streakTopPlayersError?.message}
+										</td>
+									</tr>
+								) : (
+									streakTopPlayersData.map((player, index) => (
+										<tr key={player.id} className="border-b border-gray-700 text-lg">
+											<td className="py-4 text-yellow-500 font-bold">{index + 1}</td>
+											<td className="py-4">{player.username}</td>
+											<td className="py-4">{player.streakhighestscore}</td>
+										</tr>
+									))
+								)}
 							</tbody>
 						</table>
 					</div>
 				</div>
+
 
 				<footer className="mt-auto py-6 text-center text-sm text-gray-500">
 					<p>

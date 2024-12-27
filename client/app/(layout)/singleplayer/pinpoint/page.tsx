@@ -1,15 +1,31 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Navigation from "@/components/navigation/Navigation";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { getPinPointSPTopPlayers } from "@/services/stats/stats.service";
 
 export default function PinPointSP() {
+
+	const {
+		data: pinPoinSPTopPlayersData = [], // Default to an empty array
+		isLoading: isPinPointSPTopPlayersLoading,
+		isError: isPinPointSPTopPlayersError,
+		error: pinPointSPTopPlayersError,
+	} = useQuery({
+		queryKey: ["pinPointSPTopPlayers"],
+		queryFn: getPinPointSPTopPlayers,
+		staleTime: 1000 * 60 * 5,
+		retry: 3,
+	});
+
 	return (
-		<div>
+		<div id="animatedBackground">
 			<Navigation />
-			<div className="flex flex-col items-center bg-gradient-to-b from-gray-900 via-black to-gray-800 text-white min-h-screen px-4 md:px-8 lg:px-16 py-20">
+			<div className="flex flex-col items-center bg-fluid-background text-white min-h-screen px-4 md:px-8 lg:px-16 py-20">
 				<div className="flex flex-col md:flex-row justify-center items-center gap-12 lg:gap-16 w-full max-w-7xl">
 					{/* Main Content */}
 					<div className="flex flex-col items-center text-center md:items-start md:text-left gap-6">
@@ -38,7 +54,6 @@ export default function PinPointSP() {
 						</Link>
 					</div>
 
-					{/* Leaderboard */}
 					<div className="flex flex-col items-center w-full max-w-xl md:max-w-3xl mx-auto">
 						<h2 className="text-3xl md:text-4xl font-extrabold text-center md:text-left text-yellow-400 uppercase mb-4 md:mb-6">
 							Leaderboard
@@ -49,25 +64,29 @@ export default function PinPointSP() {
 									<tr className="text-gray-400 text-sm md:text-lg border-b border-gray-700">
 										<th className="py-2 md:py-4">Rank</th>
 										<th>Player</th>
-										<th>Score</th>
+										<th>Wins</th>
 									</tr>
 								</thead>
 								<tbody>
-									<tr className="border-b border-gray-700 text-sm md:text-lg">
-										<td className="py-2 md:py-4 text-yellow-500 font-bold">1</td>
-										<td className="py-2 md:py-4">ProGamer</td>
-										<td className="py-2 md:py-4">4520</td>
-									</tr>
-									<tr className="border-b border-gray-700 text-sm md:text-lg">
-										<td className="py-2 md:py-4 text-yellow-500 font-bold">2</td>
-										<td className="py-2 md:py-4">SwiftPlayer</td>
-										<td className="py-2 md:py-4">4200</td>
-									</tr>
-									<tr className="text-sm md:text-lg">
-										<td className="py-2 md:py-4 text-yellow-500 font-bold">3</td>
-										<td className="py-2 md:py-4">Victory123</td>
-										<td className="py-2 md:py-4">3900</td>
-									</tr>
+									{isPinPointSPTopPlayersLoading ? (
+										<tr>
+											<td colSpan="3" className="py-4 text-center">Loading...</td>
+										</tr>
+									) : isPinPointSPTopPlayersError ? (
+										<tr>
+											<td colSpan="3" className="py-4 text-center text-red-500">
+												Error: {pinPointSPTopPlayersError?.message}
+											</td>
+										</tr>
+									) : (
+										pinPoinSPTopPlayersData.map((player, index) => (
+											<tr key={player.id} className="border-b border-gray-700 text-sm md:text-lg">
+												<td className="py-2 md:py-4 text-yellow-500 font-bold">{index + 1}</td>
+												<td className="py-2 md:py-4">{player.username}</td>
+												<td className="py-2 md:py-4">{player.streakwins}</td>
+											</tr>
+										))
+									)}
 								</tbody>
 							</table>
 						</div>
@@ -76,10 +95,13 @@ export default function PinPointSP() {
 
 				<footer className="mt-12 md:mt-16 py-4 text-center text-xs md:text-sm text-gray-500">
 					<p>
-						Powered by <span className="text-violet-900">REALorNOT</span>. All rights reserved.
+						Powered by <span className="text-violet-900">realORnot</span>. All rights reserved.
 					</p>
 				</footer>
 			</div>
 		</div>
 	);
 }
+
+
+

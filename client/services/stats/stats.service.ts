@@ -20,6 +20,71 @@ export const getLeaderboard = async () => {
 };
 
 
+export const getPinPointSPTopPlayers = async () => {
+	try {
+		const response = await fetch(URL + "/stats/pinPointSPTopPlayers", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to get pinPointSPTopPlayers");
+		}
+
+		const data = await response.json();
+		console.log(data)
+		return data;
+	} catch (error) {
+		throw error;
+	}
+};
+
+
+export const getStreakTopPlayers = async () => {
+	try {
+		const response = await fetch(URL + "/stats/streakTopPlayers", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to get streakTopPlayers");
+		}
+
+		const data = await response.json();
+		console.log(data)
+		return data;
+	} catch (error) {
+		throw error;
+	}
+};
+
+
+export const getDuelTopPlayers = async () => {
+	try {
+		const response = await fetch(URL + "/stats/duelTopPlayers", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error("Failed to get duelTopPlayers");
+		}
+
+		const data = await response.json();
+		console.log(data)
+		return data;
+	} catch (error) {
+		throw error;
+	}
+};
+
 
 export const getProfileStats = async (userId: string) => {
 	try {

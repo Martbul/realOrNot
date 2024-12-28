@@ -61,7 +61,7 @@ func JoinDuel(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFu
 				select {
 				case <-time.After(10 * time.Second):
 					if inGame, ok := duelMM.PlayerStates.Load(player.ID); ok && inGame.(bool) {
-						return // Exit loop if player is in a game
+						return
 					}
 
 					if err := conn.WriteJSON(map[string]string{
@@ -71,12 +71,11 @@ func JoinDuel(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFu
 						log.Error("Waiting message failed, closing connection:", err)
 						return
 					}
-				case <-done: // Exit loop if connection is closed
+				case <-done:
 					return
 				}
 			}
 		}()
-		fmt.Println("api", player)
 
 		newSession, err := duelMM.DuelQueuePlayer(player, dbConn)
 		if err != nil {
@@ -85,16 +84,7 @@ func JoinDuel(duelMM *duelMatchmaker.Matchmaker, dbConn *sqlx.DB) http.HandlerFu
 			return
 		}
 
-		if newSession != nil {
-			if err := conn.WriteJSON(map[string]string{
-				"status":   "game_found",
-				"session":  newSession.ID,
-				"message":  "Game session started!",
-				"playerId": player.ID,
-			}); err != nil {
-				log.Error("Error notifying player about game session:", err)
-			}
-		}
+		fmt.Println(newSession)
 
 		<-done
 

@@ -8,14 +8,20 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getPinPointSPTopPlayers } from "@/services/stats/stats.service";
 
+interface Player {
+	id: string;
+	username: string;
+	streakwins: number;
+}
+
 export default function PinPointSP() {
 
 	const {
-		data: pinPoinSPTopPlayersData = [], // Default to an empty array
+		data: pinPoinSPTopPlayersData = [],
 		isLoading: isPinPointSPTopPlayersLoading,
 		isError: isPinPointSPTopPlayersError,
 		error: pinPointSPTopPlayersError,
-	} = useQuery({
+	} = useQuery<Player[]>({
 		queryKey: ["pinPointSPTopPlayers"],
 		queryFn: getPinPointSPTopPlayers,
 		staleTime: 1000 * 60 * 5,
@@ -27,7 +33,6 @@ export default function PinPointSP() {
 			<Navigation />
 			<div className="flex flex-col items-center bg-fluid-background text-white min-h-screen px-4 md:px-8 lg:px-16 py-20">
 				<div className="flex flex-col md:flex-row justify-center items-center gap-12 lg:gap-16 w-full max-w-7xl">
-					{/* Main Content */}
 					<div className="flex flex-col items-center text-center md:items-start md:text-left gap-6">
 						<h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-yellow-400 uppercase tracking-widest">
 							PinPoint Singleplayer
@@ -46,7 +51,6 @@ export default function PinPointSP() {
 						</div>
 						<Link href="/gamePinPointSP">
 							<Button
-								variant="primary"
 								className="px-8 md:px-10 py-3 md:py-4 text-lg md:text-xl font-bold bg-gradient-to-r from-purple-900 to-violet-950 text-black rounded-lg hover:scale-105 transform transition-all shadow-lg"
 							>
 								Play Now
@@ -70,16 +74,16 @@ export default function PinPointSP() {
 								<tbody>
 									{isPinPointSPTopPlayersLoading ? (
 										<tr>
-											<td colSpan="3" className="py-4 text-center">Loading...</td>
+											<td colSpan={3} className="py-4 text-center">Loading...</td>
 										</tr>
 									) : isPinPointSPTopPlayersError ? (
 										<tr>
-											<td colSpan="3" className="py-4 text-center text-red-500">
+											<td colSpan={3} className="py-4 text-center text-red-500">
 												Error: {pinPointSPTopPlayersError?.message}
 											</td>
 										</tr>
 									) : (
-										pinPoinSPTopPlayersData.map((player, index) => (
+										pinPoinSPTopPlayersData.map((player: Player, index: number) => (
 											<tr key={player.id} className="border-b border-gray-700 text-sm md:text-lg">
 												<td className="py-2 md:py-4 text-yellow-500 font-bold">{index + 1}</td>
 												<td className="py-2 md:py-4">{player.username}</td>
@@ -102,6 +106,11 @@ export default function PinPointSP() {
 		</div>
 	);
 }
+
+
+
+
+
 
 
 

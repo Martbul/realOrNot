@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Navigation from "@/components/navigation/Navigation";
-import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getDuelTopPlayers } from "@/services/stats/stats.service";
 import { joinGame } from "@/services/game/game.service";
@@ -21,9 +20,8 @@ export default function Duel() {
 	const [isWaiting, setIsWaiting] = useState(false);
 
 	const {
-		data: duelTopPlayersData = [], // Default to an empty array
-		isLoading: isDuelTopPlayersLoading,
-		isError: isDuelTopPlayersError,
+		data: duelTopPlayersData = [],
+		status: duelTopPlayersStatus,
 		error: duelTopPlayersError,
 	} = useQuery({
 		queryKey: ["duelTopPlayers"],
@@ -32,18 +30,9 @@ export default function Duel() {
 		retry: 3,
 	});
 
-
-
-	const {
-		mutate: joinGameMutation,
-		isLoading: isJoinGameLoading,
-		isError: isJoinGameError,
-		error: joinGameError,
-	} = useMutation({
+	const joinGameMutation = useMutation({
 		mutationFn: async () => {
-			console.log(user)
 			if (!user) {
-				//TODO: Push route to login
 				throw new Error("User is not authenticated.");
 			}
 			return await joinGame(user.id, game, setGame);
@@ -56,10 +45,8 @@ export default function Duel() {
 
 	const handleJoinGame = () => {
 		setIsWaiting(true);
-		joinGameMutation();
+		joinGameMutation.mutate();
 	};
-
-
 
 	return (
 		<div id="animatedBackground">
@@ -76,16 +63,14 @@ export default function Duel() {
 						</p>
 						<Button
 							onClick={handleJoinGame}
-							disabled={isJoinGameLoading}
-
+							disabled={joinGameMutation.status === "pending"}
 							className="px-6 py-3 lg:px-8 lg:py-4 text-lg font-bold bg-gradient-to-r from-purple-900 to-violet-950  text-black rounded-md hover:scale-105 transform transition-transform shadow-md"
 						>
 							Play Now
-
 						</Button>
-						{isJoinGameError && (
+						{joinGameMutation.status === "error" && (
 							<p className="text-red-500 text-center">
-								Error: {joinGameError.message}
+								Error: {joinGameMutation.error.message}
 							</p>
 						)}
 					</div>
@@ -109,23 +94,20 @@ export default function Duel() {
 							</DialogHeader>
 						</DialogContent>
 					</Dialog>
-
-
 				</div>
 
 				<div className="mt-12 w-full max-w-6xl mx-auto">
 					<h2 className="text-3xl font-bold text-center text-yellow-400 uppercase mb-8">
 						Top Duelers
 					</h2>
-					{isDuelTopPlayersLoading ? (
+					{duelTopPlayersStatus === "pending" ? (
 						<p className="text-center text-gray-300">Loading podium...</p>
-					) : isDuelTopPlayersError ? (
+					) : duelTopPlayersStatus === "error" ? (
 						<p className="text-center text-red-500">
 							Error loading data: {duelTopPlayersError.message}
 						</p>
 					) : (
 						<div className="flex justify-center items-end gap-12 relative">
-							{/* Second Place */}
 							{duelTopPlayersData.length >= 2 && (
 								<div className="flex flex-col items-center">
 									<div className="bg-gray-800 text-violet-900 rounded-full w-24 h-24 flex items-center justify-center text-2xl font-bold mb-2">
@@ -144,7 +126,6 @@ export default function Duel() {
 								</div>
 							)}
 
-							{/* First Place */}
 							{duelTopPlayersData.length >= 1 && (
 								<div className="flex flex-col items-center">
 									<div className="bg-violet-900 text-black rounded-full w-28 h-28 flex items-center justify-center text-3xl font-bold mb-2">
@@ -163,7 +144,6 @@ export default function Duel() {
 								</div>
 							)}
 
-							{/* Third Place */}
 							{duelTopPlayersData.length >= 3 && (
 								<div className="flex flex-col items-center">
 									<div className="bg-gray-800 text-violet-900 rounded-full w-24 h-24 flex items-center justify-center text-2xl font-bold mb-2">
@@ -194,3 +174,14 @@ export default function Duel() {
 		</div>
 	);
 }
+
+
+
+
+
+
+
+
+
+
+

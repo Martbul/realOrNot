@@ -50,7 +50,6 @@ const Login = () => {
 
 	return (
 		<div className="relative grid h-screen w-full grid-cols-1 md:grid-cols-2 bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
-			{/* Left Side */}
 			<div className="flex flex-col items-center justify-center p-8">
 				<div className="max-w-md space-y-4 text-center">
 					<h1 className="text-5xl font-extrabold text-white">Formula Fan</h1>
@@ -75,10 +74,8 @@ const Login = () => {
 				</div>
 			</div>
 
-			{/* Line Divider */}
 			<div className="absolute inset-y-0 left-1/2 w-0.5 bg-gray-600 md:block"></div>
 
-			{/* Right Side */}
 			<div className="flex flex-col items-center justify-center p-8">
 				<Card className="w-full max-w-md bg-gray-800 text-white shadow-lg shadow-black/50">
 					<CardHeader className="space-y-1">
@@ -151,7 +148,7 @@ const Login = () => {
 					</form>
 					<div className="mt-4 text-center">
 						<p className="text-sm text-gray-400">
-							Don't have an account?{" "}
+							Do not have an account?{" "}
 							<Link href="/signup" className="font-medium underline text-white">
 								Sign up
 							</Link>

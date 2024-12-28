@@ -1,10 +1,11 @@
-import { useAuthContext } from '@/contexts/authContext';
 
+import { useAuthContext } from '@/contexts/authContext';
 import { logout } from '@/services/auth/auth.service';
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Pin, UserProfileIcon } from '@/utils/svgIcons';
+import { UserProfileIcon } from '@/utils/svgIcons';
 import Link from 'next/link';
+import { User } from '@/utils/interfaces';
 
 const CaretIcon = () => (
 	<svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -39,7 +40,7 @@ const MenuDropdownItem = ({
 	title: string;
 	description: string;
 }) => (
-	<a
+	<Link
 		className="flex items-center space-x-3 p-3 hover:bg-gray-700 transition duration-200 rounded-md"
 		href={href}
 	>
@@ -48,10 +49,16 @@ const MenuDropdownItem = ({
 			<div className="font-semibold text-white">{title}</div>
 			<div className="text-gray-400 text-xs">{description}</div>
 		</div>
-	</a>
+	</Link>
 );
 
-const UserDropdown = ({ setUser, user }) => {
+// Typing for setUser and user
+interface UserDropdownProps {
+	setUser: React.Dispatch<React.SetStateAction<User>>;
+	user: User;
+}
+
+const UserDropdown: React.FC<UserDropdownProps> = ({ setUser, user }) => {
 	const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -70,15 +77,15 @@ const UserDropdown = ({ setUser, user }) => {
 			</div>
 			{userDropdownOpen && (
 				<div className="absolute right-0 bg-gray-800 p-4 rounded-lg mt-2 w-48 shadow-lg border border-gray-700">
-					<a href="/profile" className="block text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition duration-200">
+					<Link href="/profile" className="block text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition duration-200">
 						Profile
-					</a>
-					<a href="/settings" className="block text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition duration-200">
+					</Link>
+					<Link href="/settings" className="block text-white py-2 px-3 rounded-lg hover:bg-gray-700 transition duration-200">
 						Settings
-					</a>
+					</Link>
 					<button
 						onClick={async () => {
-							await logout(setUser);
+							logout(setUser);
 						}}
 						className="block w-full text-left text-white py-2 px-3 rounded-lg hover:bg-red-600 transition duration-200"
 					>
@@ -105,7 +112,7 @@ const Dropdown = ({ title, children }: { title: string; children: React.ReactNod
 		>
 			<button
 				className="text-white font-semibold flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg transition duration-200"
-				onClick={() => setIsOpen(!isOpen)} // For mobile toggle
+				onClick={() => setIsOpen(!isOpen)}
 			>
 				<span>{title}</span>
 				<CaretIcon />
@@ -119,10 +126,6 @@ const Dropdown = ({ title, children }: { title: string; children: React.ReactNod
 	);
 };
 
-
-
-
-
 const Navigation: React.FC = () => {
 	const { user, setUser } = useAuthContext();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -130,16 +133,14 @@ const Navigation: React.FC = () => {
 
 	return (
 		<header className="relative text-white shadow-lg p-4">
-			{/* Background with opacity */}
 			<div className="absolute inset-0 bg-gray-900 opacity-60 z-0" />
-
 			<div className="flex items-center justify-between w-full relative z-10">
 				<div className="flex items-center space-x-3">
-					<a href="/" className="flex items-center">
+					<Link href="/" className="flex items-center">
 						<h1 className="text-xl font-bold ml-2 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
 							REALorNOT
 						</h1>
-					</a>
+					</Link>
 				</div>
 
 				<div className="hidden md:flex space-x-24 items-center">
@@ -226,28 +227,27 @@ const Navigation: React.FC = () => {
 							<UserProfileIcon className="h-10 w-10" />
 							<div>
 								<p className="text-white font-semibold">{user?.username || 'Player Name'}</p>
-								<p className="text-gray-400 text-xs">{user?.email || 'player@example.com'}</p>
 							</div>
 							<CaretIcon />
 						</button>
 
 						{userDropdownOpen && (
 							<div className="mt-2 bg-gray-800 rounded-lg shadow-md border border-gray-700">
-								<a
+								<Link
 									href="/profile"
 									className="block text-white py-2 px-4 hover:bg-gray-700 transition duration-200"
 								>
 									Profile
-								</a>
-								<a
+								</Link>
+								<Link
 									href="/settings"
 									className="block text-white py-2 px-4 hover:bg-gray-700 transition duration-200"
 								>
 									Settings
-								</a>
+								</Link>
 								<button
 									onClick={async () => {
-										await logout(setUser);
+										logout(setUser);
 									}}
 									className="block w-full text-left text-white py-2 px-4 hover:bg-red-600 transition duration-200"
 								>
@@ -263,7 +263,7 @@ const Navigation: React.FC = () => {
 								href="/singleplayer/streak"
 								imgSrc="/fire.png"
 								title="Streak"
-								description="Guess as loong as you are right!"
+								description="Guess as long as you are right!"
 							/>
 							<MenuDropdownItem
 								href="/singleplayer/pinpoint"
@@ -292,20 +292,11 @@ const Navigation: React.FC = () => {
 								description="Create or join custom modes."
 							/>
 						</Dropdown>
-						<Dropdown title="Party">
-							<MenuDropdownItem
-								href="/party"
-								imgSrc="/content-creator.png"
-								title="Host a Party"
-								description="Play with friends."
-							/>
-						</Dropdown>
 					</div>
 				</div>
 			)}
 		</header>
 	);
 };
-
 
 export default Navigation;

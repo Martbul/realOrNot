@@ -10,30 +10,31 @@ import { playStreakGame } from "@/services/game/game.service";
 import { useStreakGameContext } from "@/contexts/streakGameContext";
 import { getStreakTopPlayers } from "@/services/stats/stats.service";
 
-export default function Streak() {
+interface Player {
+	id: string;
+	username: string;
+	streakhighestscore: number;
+}
 
+export default function Streak() {
 	const { user } = useAuthContext();
 	const { streakGame, setStreakGame } = useStreakGameContext();
 	const router = useRouter();
 
-
 	const {
-		data: streakTopPlayersData = [], // Default to an empty array
-		isLoading: isStreakTopPlayersLoading,
-		isError: isStreakTopPlayersError,
+		data: streakTopPlayersData = [],
+		status: streakTopPlayersStatus,
 		error: streakTopPlayersError,
-	} = useQuery({
+	} = useQuery<Player[]>({
 		queryKey: ["streakTopPlayers"],
 		queryFn: getStreakTopPlayers,
 		staleTime: 1000 * 60 * 5,
 		retry: 3,
 	});
 
-
 	const {
 		mutate: joinGameMutation,
-		isLoading: isJoinGameLoading,
-		isError: isJoinGameError,
+		status: joinGameStatus,
 		error: joinGameError,
 	} = useMutation({
 		mutationFn: async () => {
@@ -51,7 +52,6 @@ export default function Streak() {
 		joinGameMutation();
 	};
 
-
 	return (
 		<div id="animatedBackground">
 			<Navigation />
@@ -63,8 +63,7 @@ export default function Streak() {
 					</h1>
 					<p className="text-lg max-w-xl text-gray-300 leading-relaxed">
 						Welcome to <span className="text-violet-900 font-bold">Streak</span>, the ultimate skill-based challenge!
-						Outsmart opponents, climb the leaderboard, and prove you're the best.
-						Will you claim the top spot?
+						Outsmart opponents, climb the leaderboard, and prove you are the best. Will you claim the top spot?
 					</p>
 				</div>
 
@@ -79,17 +78,19 @@ export default function Streak() {
 						/>
 					</div>
 					<Button
-						variant="primary"
 						className="px-10 py-4 text-xl font-bold bg-gradient-to-r from-purple-900 to-violet-950 text-black rounded-lg hover:scale-105 transform transition-all shadow-lg"
 						onClick={() => handleJoinGame()}
+						disabled={joinGameStatus === "pending"}
 					>
-						Play Now
+						{joinGameStatus === "pending" ? "Joining..." : "Play Now"}
 					</Button>
+
+					{joinGameStatus === "error" && joinGameError instanceof Error && (
+						<div className="mt-4 text-red-500 text-lg">
+							Error: {joinGameError.message}
+						</div>
+					)}
 				</div>
-
-
-
-
 
 				<div className="w-full max-w-5xl mt-16">
 					<h2 className="text-4xl font-extrabold text-center text-yellow-400 uppercase mb-6">
@@ -105,14 +106,14 @@ export default function Streak() {
 								</tr>
 							</thead>
 							<tbody>
-								{isStreakTopPlayersLoading ? (
+								{streakTopPlayersStatus === "pending" ? (
 									<tr>
-										<td colSpan="3" className="py-4 text-center">Loading...</td>
+										<td colSpan={3} className="py-4 text-center">Loading leaderboard...</td>
 									</tr>
-								) : isStreakTopPlayersError ? (
+								) : streakTopPlayersStatus === "error" ? (
 									<tr>
-										<td colSpan="3" className="py-4 text-center text-red-500">
-											Error: {streakTopPlayersError?.message}
+										<td colSpan={3} className="py-4 text-center text-red-500">
+											Error: {streakTopPlayersError instanceof Error ? streakTopPlayersError.message : "Something went wrong."}
 										</td>
 									</tr>
 								) : (
@@ -129,7 +130,6 @@ export default function Streak() {
 					</div>
 				</div>
 
-
 				<footer className="mt-auto py-6 text-center text-sm text-gray-500">
 					<p>
 						Powered by <span className="text-violet-900">REALorNOT</span>. All rights reserved.
@@ -139,5 +139,3 @@ export default function Streak() {
 		</div>
 	);
 }
-
-

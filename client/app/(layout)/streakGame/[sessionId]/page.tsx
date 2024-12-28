@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import { useAuthContext } from "@/contexts/authContext";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
-import { use } from "react"; // Import use() for unwrapping promises
+import { use } from "react";
 import { useStreakGameContext } from "@/contexts/streakGameContext";
+import Image from "next/image";
 
 interface StreakGamePageProps {
 	params: Promise<{
@@ -23,7 +24,6 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 	const { user } = useAuthContext();
 	const router = useRouter();
 
-	// Resolve params
 	const { sessionId } = use(params);
 
 	const sendGuess = (guess: string) => {
@@ -42,9 +42,9 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 		setSelectedImage(null);
 
 		if (streakGame) {
-			streakGame.finalScore = []; // Reset winners list
+			streakGame.finalScore = [];
 		}
-	}, [sessionId]);
+	}, [sessionId, streakGame]);
 
 	useEffect(() => {
 		if (startGameTimer > 0) {
@@ -73,8 +73,8 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 		if (streakGame.finalScore) {
 			setShowWinners(true);
 			setTimeout(() => {
-				router.push("/"); // Redirect to home page after 5 seconds
-			}, 5000); // Adjust the timeout duration as needed
+				router.push("/");
+			}, 5000);
 		}
 	}, [streakGame.finalScore, router]);
 
@@ -143,7 +143,9 @@ const StreakGamePage: React.FC<StreakGamePageProps> = ({ params }) => {
 								if (!selectedImage) sendGuess(streakGame.roundData[key]);
 							}}
 						>
-							<img
+							<Image
+								width={400}
+								height={300}
 								src={streakGame.roundData[key]}
 								alt={`Image ${index + 1}`}
 								className="absolute inset-0 w-full h-full object-contain"

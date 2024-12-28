@@ -1,3 +1,5 @@
+import { User } from "@/utils/interfaces";
+
 const URL = process.env.NEXT_PUBLIC_LOCAL_SERVER_URL;
 export const login = async (email: string, password: string, setUser: Function) => {
 	try {
@@ -7,7 +9,6 @@ export const login = async (email: string, password: string, setUser: Function) 
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ email, password }),
-			//			credentials: "include", // Ensures cookies are sent/received
 		});
 
 		if (!response.ok) {
@@ -41,7 +42,7 @@ export const refreshToken = async () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ refreshToken }), // Send refreshToken in the request body
+			body: JSON.stringify({ refreshToken }),
 		});
 
 		if (!response.ok) {
@@ -50,7 +51,7 @@ export const refreshToken = async () => {
 
 		const data = await response.json();
 		console.log(data)
-		localStorage.setItem("accessToken", data.accessToken); // Update access token
+		localStorage.setItem("accessToken", data.accessToken);
 		return data.accessToken;
 	} catch (error) {
 		console.error("Error refreshing token:", error);

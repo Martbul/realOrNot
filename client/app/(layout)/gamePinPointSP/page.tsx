@@ -1,28 +1,39 @@
-'use client';
-
+"use client"
 import { useAuthContext } from '@/contexts/authContext';
 import { evaluatePinPointSPGameResults, getPinPointGameData } from '@/services/game/game.service';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import React, { useState, useEffect, useRef } from 'react';
 import ReactConfetti from 'react-confetti';
-
 import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 
+type Region = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type Coordinates = {
+  x: number;
+  y: number;
+};
+
 const ImageClickGame = () => {
   const [imageUrl, setImageUrl] = useState('');
-  const [aiRegion, setAiRegion] = useState<any>(null);
-  const [clickCoords, setClickCoords] = useState<any>(null);
+  const [aiRegion, setAiRegion] = useState<Region | null>(null);
+  const [clickCoords, setClickCoords] = useState<Coordinates | null>(null);
   const [score, setScore] = useState<boolean[]>([]);
   const [currRound, setCurrRound] = useState(0);
   const imageRef = useRef<HTMLDivElement>(null);
   const { user } = useAuthContext();
 
   const router = useRouter();
+
   const {
     data: pinPointData,
-    isLoading: isPinPointSPDataLoading,
+    status: pinPointDataStatus,
     isError: isPinPointSPDataError,
     error: pinPointSPDataError,
   } = useQuery({
@@ -35,7 +46,7 @@ const ImageClickGame = () => {
   const {
     mutate: resultEvaluationMutation,
     data: resultsData,
-    isLoading: areResultsEvaluatingLoading,
+    status: resultEvaluationStatus,
     isError: evaluatingResultsError,
     error: resultsError,
   } = useMutation({
@@ -57,7 +68,8 @@ const ImageClickGame = () => {
     }
   }, [pinPointData, currRound, resultEvaluationMutation]);
 
-  const checkProximity = (clickX: number, clickY: number) => {
+  const checkProximity = (clickX: number, clickY: number): boolean => {
+    if (!aiRegion) return false;
     return (
       clickX >= aiRegion.x &&
       clickX <= aiRegion.x + aiRegion.width &&
@@ -67,8 +79,8 @@ const ImageClickGame = () => {
   };
 
   const handlePlayAgain = () => {
-    router.replace("/gamePinPointSP")
-  }
+    router.replace("/gamePinPointSP");
+  };
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageRef.current || !aiRegion) return;
@@ -81,7 +93,6 @@ const ImageClickGame = () => {
 
     const isGuessedRight = checkProximity(x, y);
     setScore((prevScore) => [...prevScore, isGuessedRight]);
-
     setCurrRound((prevRound) => prevRound + 1);
   };
 
@@ -93,14 +104,13 @@ const ImageClickGame = () => {
     }
   }, [resultsData, router]);
 
-
-  if (isPinPointSPDataLoading) return <div>Loading...</div>;
+  if (pinPointDataStatus === "pending") return <div>Loading...</div>;
   if (isPinPointSPDataError) return <div>Error: {pinPointSPDataError.message}</div>;
 
   return (
     <>
       <div>
-        {areResultsEvaluatingLoading && <p>Loading results...</p>}
+        {resultEvaluationStatus === "pending" && <p>Loading results...</p>}
         {evaluatingResultsError && (
           <p className="text-red-500">
             Error evaluating results: {resultsError.message}
@@ -138,24 +148,6 @@ const ImageClickGame = () => {
             />
           )}
 
-
-
-          {/* 
-          {aiRegion && (
-            <div
-              className="absolute bg-blue-500 bg-opacity-50 pointer-events-none"
-              style={{
-                top: aiRegion.y,
-                left: aiRegion.x,
-                width: aiRegion.width,
-                height: aiRegion.height,
-              }}
-            />
-          )}
-
-
-        */}
-
           {clickCoords && (
             <div
               className="absolute w-4 h-4 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -163,7 +155,6 @@ const ImageClickGame = () => {
             />
           )}
         </div>
-
       </div>
     </>
   );

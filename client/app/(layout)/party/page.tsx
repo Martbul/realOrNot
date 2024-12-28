@@ -3,6 +3,7 @@
 
 import Navigation from "@/components/navigation/Navigation";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function InviteFriendsPage() {
@@ -12,12 +13,11 @@ export default function InviteFriendsPage() {
 
 
       <main className="bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white min-h-screen flex flex-col items-center p-6">
-        {/* Section 1: Header with invitation title */}
-
-        {/* Section 2: Cards with descriptions */}
         <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-3 gap-8 mt-8">
           <div className="bg-gray-800 rounded-lg shadow-md p-6 text-center">
-            <img
+            <Image
+              width={300}
+              height={250}
               src="/_next/static/media/three-people.6a1934ec.png"
               alt="Invite friends"
               className="w-80 h-60 object-cover rounded-md mx-auto mb-4"
@@ -29,7 +29,9 @@ export default function InviteFriendsPage() {
           </div>
 
           <div className="bg-gray-800 rounded-lg shadow-md p-6 text-center">
-            <img
+            <Image
+              width={300}
+              height={250}
               src="/_next/static/media/person-waving.47014116.png"
               alt="Play all modes"
               className="w-80 h-60 object-cover rounded-md mx-auto mb-4"
@@ -41,7 +43,9 @@ export default function InviteFriendsPage() {
           </div>
 
           <div className="bg-gray-800 rounded-lg shadow-md p-6 text-center">
-            <img
+            <Image
+              width={300}
+              height={250}
               src="/_next/static/media/map.5b549e44.png"
               alt="Set your rules"
               className="w-80 h-60 object-cover rounded-md mx-auto mb-4"
@@ -52,8 +56,6 @@ export default function InviteFriendsPage() {
             </p>
           </div>
         </div>
-
-        {/* Section 3: Call to action with buttons */}
         <div className="mt-10 text-center">
           <div className="flex gap-8 justify-center mb-4">
             <Link href="/join">
@@ -62,13 +64,13 @@ export default function InviteFriendsPage() {
               </Button>
             </Link>
             <Link href="/pro">
-              <Button variant="primary" className="w-full sm:w-auto grad gradHover">
+              <Button className="w-full sm:w-auto grad gradHover">
                 Unlock parties
               </Button>
             </Link>
           </div>
           <p className="text-sm text-gray-400 mt-4">
-            Any player can join a party as long as the host is pro. No other requirements are necessary, you don't even need an account.
+            Any player can join a party as long as the host is pro. No other requirements are necessary, you do not even need an account.
           </p>
         </div>
       </main>

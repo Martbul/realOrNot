@@ -20,12 +20,24 @@ import { useAuthContext } from "@/contexts/authContext";
 import { useGameContext } from "@/contexts/gameContext";
 import Navigation from "@/components/navigation/Navigation";
 
+// Type definition for a player in the leaderboard
+interface Player {
+  id: string;
+  username: string;
+  duelwins: number;
+}
+
+// Type definition for the joinGame response
+interface JoinGameResponse {
+  session: string;
+  players: string[];
+}
+
 const images = [
   "https://imgs.search.brave.com/uYNBdHBfyt8SLNwJ_DZrPbmZFZbjVdSYzeQuptnC9bQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/aW5lbWUtYWkuYi1j/ZG4ubmV0L3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIzLzEyL2Iz/NDMxYTg3MzY0YzQy/YjNiLmpwZw",
   "https://imgs.search.brave.com/r8ryDuO4qZFvNYn13pWdcHwazEbSkv5dZXPYxrKQXx8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cGljbHVtZW4uY29t/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDI0/LzEwL3BpY2x1bWVu/LW1hcnF1ZWUtMDMu/d2VicA",
   "https://news.ubc.ca/wp-content/uploads/2023/08/AdobeStock_559145847.jpeg"
 ];
-
 
 export default function Home() {
   const { user } = useAuthContext();
@@ -35,48 +47,49 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
-  console.log("User from context in Home:", user); // Debugging line
+  console.log("User from context in Home:", user);
   useEffect(() => {
     console.log("User in Home after context update:", user);
   }, [user]);
-
 
   const {
     data: leaderboardData,
     isLoading: isLeaderboardLoading,
     isError: isLeaderboardError,
     error: leaderboardError,
-  } = useQuery({
+  } = useQuery<Player[]>({
     queryKey: ["leaderboard"],
     queryFn: getLeaderboard,
     staleTime: 1000 * 60 * 5,
     retry: 3,
   });
 
-
   const {
     mutate: joinGameMutation,
-    isLoading: isJoinGameLoading,
-    isError: isJoinGameError,
+    status: joinGameStatus,
     error: joinGameError,
-  } = useMutation({
+  } = useMutation<JoinGameResponse>({
     mutationFn: async () => {
-      console.log(user)
+      console.log(user);
       if (!user) {
-        //TODO: Push route to login
         throw new Error("User is not authenticated.");
       }
       return await joinGame(user.id, game, setGame);
     },
-    onSuccess: ({ session, players }) => {
-      // Stop the waiting state
+    onSuccess: ({ session, players }: JoinGameResponse) => {
+      console.log("joinGame response:", { session, players });
       setIsWaiting(false);
+      let player1;
+      let player2;
+      if (user.username === players[0]) {
+        player1 = players[0];
+        player2 = players[1];
+      } else {
+        player1 = players[1];
+        player2 = players[0];
+      }
 
-      // Log players for debugging or display purposes
-      console.log("Players in game:", players);
-
-      // Redirect to the game session with the appropriate parameters
-      router.replace(`/game/${session}?exampleParam=value&anotherParam=anotherValue`);
+      router.replace(`/game/${session}?player1=${player1}&player2=${player2}`);
     },
   });
 
@@ -118,13 +131,13 @@ export default function Home() {
                 <Button
                   className="w-full grad gradHover"
                   onClick={handleJoinGame}
-                  disabled={isJoinGameLoading}
+                  disabled={joinGameStatus === "pending"}
                 >
-                  {isJoinGameLoading ? "Joining..." : "Join Now"}
+                  {joinGameStatus === "pending" ? "Joining..." : "Join Now"}
                 </Button>
-                {isJoinGameError && (
+                {joinGameStatus === "error" && (
                   <p className="text-red-500 text-center">
-                    Error: {joinGameError.message}
+                    Error: {joinGameError instanceof Error ? joinGameError.message : "Something went wrong."}
                   </p>
                 )}
               </CardContent>
@@ -162,7 +175,6 @@ export default function Home() {
                 </div>
               ))}
             </div>
-
           </div>
         </div>
 
@@ -184,7 +196,7 @@ export default function Home() {
             <>
               {leaderboardData && leaderboardData.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                  {leaderboardData && leaderboardData.slice(0, 3).map((player: any, index: number) => (
+                  {leaderboardData.slice(0, 3).map((player: Player, index: number) => (
                     <div
                       key={player.id}
                       className="bg-gradient-to-b from-yellow-500 to-yellow-300 p-6 rounded-lg shadow-md text-center text-black"
@@ -202,7 +214,7 @@ export default function Home() {
               <div className="bg-gray-800 rounded-lg p-4 shadow-md">
                 <h3 className="text-2xl font-bold mb-4">Other Players</h3>
                 <ul className="divide-y divide-gray-700">
-                  {leaderboardData && leaderboardData.slice(3).map((player: any) => (
+                  {leaderboardData?.slice(3).map((player: Player) => (
                     <li
                       key={player.id}
                       className="py-2 flex justify-between items-center"

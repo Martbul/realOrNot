@@ -73,7 +73,6 @@ func GetRandomRounds(db *sqlx.DB) ([]types.Round, error) {
 }
 
 func GetPinPointSPRoundData(db *sqlx.DB) ([]types.PinPointRoundData, error) {
-
 	log := logger.GetLogger()
 
 	if db == nil {

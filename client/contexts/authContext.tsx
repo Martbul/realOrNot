@@ -3,15 +3,12 @@
 import { AuthContextType, User } from "@/utils/interfaces";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-const AuthContext = createContext<AuthContextType>({
-	user: { id: "-1" },
-	setUser: () => { },
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthContextWrapper({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User>({
 		id: "-1",
-		username: null
+		username: null,
 	});
 	const [isMounted, setIsMounted] = useState(false);
 
@@ -20,8 +17,8 @@ export function AuthContextWrapper({ children }: { children: React.ReactNode }) 
 
 		const userId = localStorage.getItem("userId");
 		const username = localStorage.getItem("username");
-		console.log(userId)
-		if (userId) {
+
+		if (userId && username) {
 			setUser({ id: userId, username: username });
 		}
 	}, []);
@@ -36,10 +33,18 @@ export function AuthContextWrapper({ children }: { children: React.ReactNode }) 
 	};
 
 	return (
-		<AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+		<AuthContext.Provider value={contextValue}>
+			{children}
+		</AuthContext.Provider>
 	);
 }
 
 export function useAuthContext() {
-	return useContext(AuthContext);
+	const context = useContext(AuthContext);
+
+	if (!context) {
+		throw new Error("useAuthContext must be used within an AuthContextWrapper");
+	}
+
+	return context;
 }

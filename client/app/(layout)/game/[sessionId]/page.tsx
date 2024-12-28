@@ -1,5 +1,3 @@
-
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "@/contexts/gameContext";
@@ -7,6 +5,7 @@ import { useAuthContext } from "@/contexts/authContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import Confetti from "react-confetti";
 import { use } from "react";
+import Image from "next/image";
 
 interface GamePageProps {
 	params: Promise<{
@@ -28,17 +27,10 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 	const { sessionId } = use(params);
 	const searchParams = useSearchParams();
 
-	// Accessing query parameters
-	const exampleParam = searchParams.get("exampleParam");
-	const anotherParam = searchParams.get("anotherParam");
+	const player1 = searchParams.get("player1");
+	const player2 = searchParams.get("player2");
 
 
-
-	useEffect(() => {
-		if (exampleParam) {
-			console.log("Query Params:", exampleParam);
-		}
-	}, [exampleParam]);
 
 	const sendGuess = (guess: string) => {
 		if (!game.ws || selectedImage) return;
@@ -58,7 +50,7 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 		if (game) {
 			game.winners = [];
 		}
-	}, [sessionId]);
+	}, [game, sessionId]);
 
 	useEffect(() => {
 		if (startGameTimer > 0) {
@@ -90,7 +82,7 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 				router.push("/");
 			}, 5000);
 		}
-	}, [game.winners, router]);
+	}, [game, game.winners, router]);
 
 	if (!game) {
 		return (
@@ -118,23 +110,41 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 				</div>
 			)}
 
+
 			{showTimer && (
-				<div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+				<div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
 					<div className="relative w-full">
-						{/* Player Names Animation */}
-						<div className="absolute left-0 top-1/3 transform -translate-y-1/2 animate-slideInLeft text-4xl font-bold text-indigo-500">
-							PLAYER1
+						<div className="absolute left-0 top-[20%] sm:top-1/4 md:top-1/4 transform -translate-y-1/2 animate-slideInLeft text-4xl sm:text-5xl md:text-6xl font-extrabold text-blue-500 drop-shadow-2xl">
+							<span className="animate-pulse text-blue-300 animate-neonFlicker">{player1}</span>
 						</div>
-						<div className="absolute right-0 top-1/3 transform -translate-y-1/2 animate-slideInRight text-4xl font-bold text-green-500">
-							PLAYER2
+
+						<div className="absolute right-0 top-[40%] sm:top-[45%] md:top-1/4 transform -translate-y-1/2 animate-slideInRight text-4xl sm:text-5xl md:text-6xl font-extrabold text-red-500 drop-shadow-2xl">
+							<span className="animate-pulse text-red-300 animate-neonFlicker">{player2}</span>
 						</div>
-						{/* Timer Display */}
-						<div className="text-center text-white text-6xl font-bold">
-							{startGameTimer}
+
+						<div className="absolute inset-x-0 top-1/3 transform -translate-y-1/2 text-center text-5xl sm:text-6xl md:text-8xl font-extrabold text-yellow-500 animate-blink shadow-2xl">
+							<span className="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-600 text-transparent bg-clip-text animate-glow">VS</span>
+						</div>
+
+						<div className="absolute inset-x-0 top-[45%] text-center text-white text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-wider drop-shadow-2xl animate-pulse">
+							<div className="bg-gradient-to-r from-red-600 via-orange-600 to-yellow-500 text-transparent bg-clip-text animate-glow">
+								{startGameTimer}
+							</div>
+						</div>
+
+						<div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-gray-800 opacity-60 animate-backgroundGlow"></div>
+						<div className="absolute inset-0 z-10 pointer-events-none">
+							<div className="absolute inset-0 animate-flashlight"></div>
+							<div className="absolute inset-0 bg-gradient-to-t from-red-800 via-transparent to-blue-800 opacity-15 animate-colorWave"></div>
+						</div>
+
+						<div className="absolute inset-0 pointer-events-none">
+							<div className="particle-layer animate-particleFlow"></div>
 						</div>
 					</div>
 				</div>
 			)}
+
 
 			<div className="text-center mb-6">
 				<h1 className="text-3xl font-extrabold text-gray-800">
@@ -165,7 +175,9 @@ const GamePage: React.FC<GamePageProps> = ({ params }) => {
 								if (!selectedImage) sendGuess(game.roundData[key]);
 							}}
 						>
-							<img
+							<Image
+								width={200}
+								height={150}
 								src={game.roundData[key]}
 								alt={`Image ${index + 1}`}
 								className="absolute inset-0 w-full h-full object-contain"

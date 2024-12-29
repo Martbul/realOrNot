@@ -162,10 +162,10 @@ const Navigation: React.FC = () => {
 							description="Compete globally."
 						/>
 						<MenuDropdownItem
-							href="/multiplayer/tournaments"
+							href="/multiplayer/chat"
 							imgSrc="/first-place-trophy.png"
-							title="Tournaments"
-							description="Join ranked tournaments."
+							title="Chat"
+							description="Chatt and figure out the AI"
 						/>
 						<MenuDropdownItem
 							href="/multiplayer/custom"
@@ -275,10 +275,10 @@ const Navigation: React.FC = () => {
 								description="Compete globally."
 							/>
 							<MenuDropdownItem
-								href="/multiplayer/tournaments"
+								href="/multiplayer/chat"
 								imgSrc="/first-place-trophy.png"
-								title="Tournaments"
-								description="Join ranked tournaments."
+								title="Chat"
+								description="Chat and figure out the AI"
 							/>
 							<MenuDropdownItem
 								href="/multiplayer/custom"

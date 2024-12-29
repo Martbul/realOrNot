@@ -42,7 +42,7 @@ func main() {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	// Move to config dir
+	//TODO: Move to config dir
 	duelMM := duelMatchmaker.NewDuelMatchmaker(2)
 	streakGameMM := streakGameMatchmaker.NewStreakGameMatchmaker()
 	pinPointSPGameMM := pinPointSPGameMatchmaker.NewPinPointSPGameMatchmaker()

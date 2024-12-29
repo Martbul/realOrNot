@@ -26,10 +26,6 @@ vendor/
 .git
 .gitignore
 
-# Ignore Go module cache (if accidentally included)
-go.sum
-go.mod~
 
 # Ignore Docker-related files (to avoid recursion or unnecessary layers)
-Dockerfile
 .dockerignore

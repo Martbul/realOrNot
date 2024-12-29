@@ -5,11 +5,11 @@ export interface User {
   username: string | null
 }
 
-export interface AuthContextType {
-  user: User;
-  setUser: Dispatch<SetStateAction<User>>;
-}
 
+export interface AuthContextType {
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+}
 export interface GameContextType {
 
   game: Game;

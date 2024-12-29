@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AuthContextType, User } from "@/utils/interfaces";
@@ -6,7 +7,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthContextWrapper({ children }: { children: React.ReactNode }) {
-	const [user, setUser] = useState<User>({
+	const [user, setUser] = useState<User | null>({
 		id: "-1",
 		username: null,
 	});

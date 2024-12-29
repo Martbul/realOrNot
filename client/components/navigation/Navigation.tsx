@@ -1,11 +1,10 @@
-
 import { useAuthContext } from '@/contexts/authContext';
 import { logout } from '@/services/auth/auth.service';
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { UserProfileIcon } from '@/utils/svgIcons';
 import Link from 'next/link';
-import { User } from '@/utils/interfaces';
+import { AuthContextType } from '@/utils/interfaces';
 
 const CaretIcon = () => (
 	<svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,13 +51,7 @@ const MenuDropdownItem = ({
 	</Link>
 );
 
-// Typing for setUser and user
-interface UserDropdownProps {
-	setUser: React.Dispatch<React.SetStateAction<User>>;
-	user: User;
-}
-
-const UserDropdown: React.FC<UserDropdownProps> = ({ setUser, user }) => {
+const UserDropdown: React.FC<AuthContextType> = ({ user, setUser }) => {
 	const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +65,9 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ setUser, user }) => {
 				onMouseLeave={() => setUserDropdownOpen(false)}
 			>
 				<UserProfileIcon className="h-8 w-8" />
-				<span className="text-sm font-semibold text-white">{user.username}</span>
+				<span className="text-sm font-semibold text-white">
+					{user ? user.username : "Guest"}
+				</span>
 				<CaretIcon />
 			</div>
 			{userDropdownOpen && (
@@ -190,7 +185,7 @@ const Navigation: React.FC = () => {
 					</Dropdown>
 				</div>
 
-				{user.username ? (
+				{user && user.username ? (
 					<div className="hidden md:block">
 						<UserDropdown setUser={setUser} user={user} />
 					</div>

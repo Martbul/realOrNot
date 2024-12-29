@@ -64,7 +64,7 @@ interface JoinGameResponse {
 export const joinGame = (userId: string, game: Game, setGame: any): Promise<JoinGameResponse> => {
 	return new Promise((resolve, reject) => {
 		const socket = new WebSocket(URL + "/game/joinDuel");
-
+		console.log(game)
 		socket.onopen = () => {
 			console.log("WebSocket connection established");
 			socket.send(JSON.stringify({ player_id: userId }));
@@ -226,7 +226,10 @@ export const evaluatePinPointSPGameResults = async (userId: string, score: boole
 		try {
 			data = JSON.parse(responseBody);
 		} catch (error) {
-			throw new Error("Failed to parse JSON response: " + error.message);
+			if (error instanceof Error) {
+				throw new Error("Failed to parse JSON response: " + error.message);
+			}
+			throw new Error("Failed to parse JSON response due to an unknown error");
 		}
 
 		if (!response.ok) {
@@ -234,10 +237,13 @@ export const evaluatePinPointSPGameResults = async (userId: string, score: boole
 		}
 
 		return data;
-
 	} catch (error) {
-		console.error("Error:", error);
-		throw error;
+		if (error instanceof Error) {
+			console.error("Error:", error.message);
+		} else {
+			console.error("An unknown error occurred");
+		}
+		throw error; // Re-throw the error after logging
 	}
 };
 

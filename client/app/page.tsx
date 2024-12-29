@@ -20,14 +20,12 @@ import { useAuthContext } from "@/contexts/authContext";
 import { useGameContext } from "@/contexts/gameContext";
 import Navigation from "@/components/navigation/Navigation";
 
-// Type definition for a player in the leaderboard
 interface Player {
   id: string;
   username: string;
   duelwins: number;
 }
 
-// Type definition for the joinGame response
 interface JoinGameResponse {
   session: string;
   players: string[];
@@ -78,6 +76,7 @@ export default function Home() {
     },
     onSuccess: ({ session, players }: JoinGameResponse) => {
       console.log("joinGame response:", { session, players });
+      if (user == null) return;
       setIsWaiting(false);
       let player1;
       let player2;

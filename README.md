@@ -1,3 +1,6 @@
+REALORNOT:
+DESCRIPTOPN:
+WHY:
 HOW TO START THE PROJECT:
 
     SERVER:
@@ -6,4 +9,6 @@ HOW TO START THE PROJECT:
     
     CLIENT:
         runs localy on :3000
-        
+
+USAGE:
+CONTRIBUTING:

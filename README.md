@@ -1,13 +1,11 @@
 ## REALORNOT
+Open-source web multyplayer game, containing different challenging gamemodes and a way for people to differenciate the AI images from the reality
 
-
-## Description
-REALORNOT is a project designed to determine the authenticity of information using advanced verification techniques. It consists of a server that processes the data and a client that provides a user-friendly interface for interacting with the system.
 
 ## Why
 The spread of misinformation has become a significant issue in today's digital world. This project aims to help users quickly identify whether information is real or not, leveraging modern technology to combat false narratives.
 
-## How to Start the Project
+## Getting started
 
 ### Server
 - Runs locally on `:8080`

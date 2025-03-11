@@ -38,7 +38,7 @@ Once the server and client are running:
 
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the Apache 2.0 License.
 
 ## Contributing
 Contributions are welcome, whether you open an issue, improve the documentation or reach out.

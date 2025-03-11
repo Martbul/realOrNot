@@ -1,9 +1,8 @@
 ## REALORNOT
-Open-source web multyplayer game, containing different challenging gamemodes and a way for people to differenciate the AI images from the reality
-
+Open-source web multiplayer game, containing different challenging gamemodes and a way for people to differentiate the AI images from the reality
 
 ## Why
-The spread of misinformation has become a significant issue in today's digital world. This project aims to help users quickly identify whether information is real or not, leveraging modern technology to combat false narratives.
+The spread of misinformation has become a significant issue in today's digital world. This realORnot aims to help users quickly identify whether an image is real or AI generated.
 
 ## Getting started
 
@@ -36,18 +35,19 @@ Once the server and client are running:
 2. Enter the information you want to verify.
 3. Receive real-time feedback on its authenticity.
 
+
+
+## License
+This project is licensed under the MIT License.
+
 ## Contributing
-Contributions are welcome! Follow these steps to contribute:
+Contributions are welcome, whether you open an issue, improve the documentation or reach out.
+
+Follow these steps to contribute:
 1. Fork the repository.
 2. Create a new branch: `git checkout -b feature-branch`
 3. Make your changes and commit: `git commit -m "Description of changes"`
 4. Push to your branch: `git push origin feature-branch`
 5. Open a pull request for review.
-
-## License
-This project is licensed under the MIT License.
-
-## Contact
-For questions or suggestions, feel free to open an issue or reach out to the maintainers.
 
 
